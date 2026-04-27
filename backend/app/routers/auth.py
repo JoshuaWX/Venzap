@@ -13,8 +13,11 @@ from app.schemas.auth import (
 	UserRegisterRequest,
 	VendorRegisterRequest,
 	VerifyEmailRequest,
+	VerifyEmailResponse,
+	VirtualAccountDetails,
 )
 from app.services import auth_service
+from app.services.virtual_account_service import ProvisioningError, provision_virtual_account, queue_virtual_account_provisioning
 from app.utils.constants import ACCESS_COOKIE_NAME, REFRESH_COOKIE_NAME
 from app.utils.limiter import limiter
 
@@ -107,13 +110,13 @@ async def refresh_tokens(request: Request, response: Response) -> AuthMessageRes
 	return AuthMessageResponse(message="Token refreshed")
 
 
-@router.post("/verify-email", response_model=AuthMessageResponse)
+@router.post("/verify-email", response_model=VerifyEmailResponse)
 @limiter.limit(settings.rate_limit_auth)
 async def verify_email(
 	request: Request,
 	payload: VerifyEmailRequest,
 	db: AsyncSession = Depends(get_db),
-) -> AuthMessageResponse:
+) -> VerifyEmailResponse:
 	purpose = f"email_verification_{payload.account_type}"
 	valid = await auth_service.verify_otp(payload.email, purpose, payload.otp)
 	if not valid:
@@ -124,13 +127,25 @@ async def verify_email(
 		if not vendor:
 			raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Vendor not found")
 		await auth_service.mark_vendor_verified(db, vendor)
-	else:
-		user = await auth_service.get_user_by_email(db, payload.email)
-		if not user:
-			raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
-		await auth_service.mark_user_verified(db, user)
+		return VerifyEmailResponse(message="Email verified")
 
-	return AuthMessageResponse(message="Email verified")
+	user = await auth_service.get_user_by_email(db, payload.email)
+	if not user:
+		raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+
+	await auth_service.mark_user_verified(db, user)
+
+	try:
+		virtual_account = await provision_virtual_account(user)
+		account_details = VirtualAccountDetails(
+			account_number=virtual_account.account_number,
+			account_name=virtual_account.account_name,
+			bank_name=virtual_account.bank_name,
+		)
+		return VerifyEmailResponse(message="Email verified", virtual_account=account_details)
+	except ProvisioningError:
+		queue_virtual_account_provisioning(str(user.id))
+		return VerifyEmailResponse(message="Email verified. Wallet account provisioning in progress.")
 
 
 @router.post("/forgot-password", response_model=AuthMessageResponse)

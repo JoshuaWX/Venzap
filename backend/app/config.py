@@ -25,6 +25,12 @@ class Settings:
     refresh_token_expire_days: int = int(_env("REFRESH_TOKEN_EXPIRE_DAYS", "7"))
     otp_ttl_seconds: int = int(_env("OTP_TTL_SECONDS", "600"))
 
+    payaza_secret_key: str = _env("PAYAZA_SECRET_KEY", "")
+    payaza_base_url: str = _env("PAYAZA_BASE_URL", "https://api.payaza.africa")
+    payaza_dva_endpoint: str = _env("PAYAZA_DVA_ENDPOINT", "/live/payaza-account/api/v1/dva")
+    payaza_payment_link_endpoint: str = _env("PAYAZA_PAYMENT_LINK_ENDPOINT", "")
+    payaza_timeout_seconds: int = int(_env("PAYAZA_TIMEOUT_SECONDS", "20"))
+
     rate_limit_general: str = _env("RATE_LIMIT_GENERAL", "60/minute")
     rate_limit_auth: str = _env("RATE_LIMIT_AUTH", "5/minute")
     rate_limit_wallet_fund_link: str = _env("RATE_LIMIT_WALLET_FUND_LINK", "3/minute")

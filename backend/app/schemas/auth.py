@@ -89,3 +89,13 @@ class ResetPasswordRequest(BaseSchema):
 class AuthMessageResponse(BaseSchema):
     message: str
     account_id: str | None = None
+
+
+class VirtualAccountDetails(BaseSchema):
+    account_number: str
+    account_name: str
+    bank_name: str
+
+
+class VerifyEmailResponse(AuthMessageResponse):
+    virtual_account: VirtualAccountDetails | None = None
