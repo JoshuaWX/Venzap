@@ -1,0 +1,87 @@
+1. Project Idea Title
+Venzap - Nigeria's Telegram-First Chat Commerce Platform, Powered by Payaza
+
+2. Detailed Project Idea and Problem Statement (Clarity of the problem being solved)
+Nigeria has over 40 million micro and small businesses, but most are still offline. Existing platforms are either too expensive, too complex, or too narrow.
+
+Current options fail these vendors:
+- Glovo/Chowdeck: high commissions, strict onboarding, mostly focused on bigger food brands.
+- Jumia/Konga: designed for established sellers with formal inventory systems.
+- Informal WhatsApp/Instagram selling: no structured payments, no order management, no protection for buyers or sellers.
+
+Customers also face friction. Many people do not want to download another app, learn a new interface, or enter card details on unfamiliar platforms just to buy food or daily essentials.
+
+Venzap solves this by bringing commerce into chat, starting with Telegram because it is faster and cheaper to launch right now. Telegram already has strong user adoption, gives us bot tooling, and lets us validate demand quickly. As we secure funding and scale, we will expand to WhatsApp and other widely adopted chat systems.
+
+How Venzap works:
+- Vendor side: vendors sign up quickly, upload menu/catalog, set prices and delivery fees, and begin receiving orders from a dashboard.
+- Customer side: customers chat with the Venzap bot in English or Pidgin, discover vendors, place orders, pay from wallet, and track updates.
+
+Rollout plan by vendor type:
+- Phase 1: food vendors (highest order frequency, fastest proof of value).
+- Phase 2: grocery stores and pharmacies.
+- Phase 3: laundry, fashion, and other service vendors.
+
+3. How does your project meaningfully integrate one or more Payaza APIs?
+Payaza is the core financial infrastructure of Venzap, not just a checkout button. We are using Approach B (Dynamic Virtual Account wallet funding) for low-friction payments.
+
+Integration A - Dynamic Virtual Account for each customer (Wallet Funding)
+- On signup, Venzap calls Payaza's Dynamic Virtual Account API to create a unique bank account per user.
+- The user receives a real account number (for example, Wema/other partner bank account) mapped permanently to their Venzap wallet.
+- User funds wallet by normal transfer from any bank/mobile app.
+- Payaza sends webhook events when transfers are received.
+- Venzap verifies HMAC-SHA512 signature, checks idempotency, and credits wallet atomically.
+- Bot sends instant confirmation message.
+
+Why this is important: no payment link friction, no repeated form filling, and behavior matches how Nigerians already pay today.
+
+Integration B - Escrow-style order flow
+- When customer confirms order, Venzap debits wallet and places funds in an escrow/locked state.
+- Vendor receives order notification and fulfills delivery.
+- On delivery confirmation, Venzap triggers Payaza-backed release/settlement logic.
+- This protects customers from failed fulfillment and assures vendors of payment.
+
+Integration C - Vendor settlements and records
+- Completed orders generate payout records.
+- Vendors see earnings in dashboard.
+- Payaza rails handle settlement operations and transaction traceability.
+
+Integration D - Webhook security and reliability
+- Signature verification (HMAC-SHA512).
+- Constant-time comparison.
+- Idempotent event processing to avoid duplicate credits.
+- Full event logs and retry-safe handling.
+
+4. Business Plan/Monetization Strategy: How do you plan to make money with this product?
+Venzap uses a land-and-expand marketplace model.
+
+Phase 1 (0-3 months): growth
+- Free onboarding for vendors.
+- Low/no commission at launch to accelerate adoption.
+- Goal: onboard core vendors, increase order volume, prove retention.
+
+Phase 2 (post-validation): monetization
+- Vendor subscriptions:
+  - Starter (Free): limited catalog size and basic dashboard.
+  - Pro (around N5,000/month): unlimited listings, analytics, priority placement.
+  - Business (around N15,000/month): multi-branch support, team accounts, advanced reporting.
+- Transaction fee: small platform fee (for example, 1.5%) per completed order.
+- Promoted listings: vendors pay for top placement in category/city feeds.
+
+Phase 3 (scale): expansion revenue
+- Channel expansion: WhatsApp and other chat channels after funding to unlock larger user base.
+- Category expansion: beyond food into grocery, pharmacy, laundry, and more.
+- Optional B2B/white-label licensing for similar markets later.
+
+Unit economics narrative:
+- We stay significantly cheaper than traditional delivery platforms, making Venzap attractive to MSMEs.
+- Revenue scales with both subscription adoption and transaction volume.
+
+5. Rate the Technical Viability/Feasibility of your proposed solution.
+6
+
+Why 6/7:
+- Core stack is practical and production-tested (FastAPI, PostgreSQL, Redis, Telegram bot framework, Payaza APIs).
+- Implementation path is clear for a hackathon MVP: Telegram ordering, vendor dashboard, virtual account funding, webhook-driven wallet crediting, and order lifecycle.
+- Main risks are operational scale (high concurrency, webhook bursts, settlement edge cases), not fundamental feasibility.
+- We mitigate with rule-based fallback flows, queue-based processing, retries, and strict webhook verification.
