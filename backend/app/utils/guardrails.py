@@ -87,6 +87,9 @@ class GuardrailValidator:
                 data["intent"] = "unclear"
                 data["clarification"] = "Which vendor would you like?"
 
+        if data.get("items") is not None:
+            data["items"] = [item for item in data["items"] if isinstance(item, dict)]
+
         if data.get("items") and vendor_catalogue:
             valid_items = {item.get("name") for item in vendor_catalogue}
             data["items"] = [item for item in data["items"] if item.get("name") in valid_items]
@@ -107,7 +110,8 @@ class GuardrailValidator:
             r"system\s*prompt",
             r"ignore\s+instructions",
             r"wallet\s*balance",
-            r"₦\d+",
+            r"\bNGN\s*\d+",
+            r"\bN\s*\d+",
             r"\d{10}",
             r"account\s*number",
             r"password",
