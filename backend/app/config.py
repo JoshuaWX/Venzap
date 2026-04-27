@@ -39,6 +39,15 @@ class Settings:
 
     internal_ai_secret: str = _env("INTERNAL_AI_SECRET", "")
 
+    openai_api_key: str = _env("OPENAI_API_KEY", "")
+    openai_model: str = _env("OPENAI_MODEL", "gpt-4o-mini")
+    ai_max_response_tokens: int = int(_env("AI_MAX_RESPONSE_TOKENS", "300"))
+    ai_max_context_tokens: int = int(_env("AI_MAX_CONTEXT_TOKENS", "2000"))
+    ai_confidence_threshold: float = float(_env("AI_CONFIDENCE_THRESHOLD", "0.6"))
+    ai_request_timeout_seconds: int = int(_env("AI_REQUEST_TIMEOUT_SECONDS", "5"))
+    ai_cache_ttl_seconds: int = int(_env("AI_CACHE_TTL_SECONDS", "60"))
+    ai_daily_token_budget: int = int(_env("AI_DAILY_TOKEN_BUDGET", "33333"))
+
     smtp_host: str = _env("SMTP_HOST", "")
     smtp_port: int = int(_env("SMTP_PORT", "587"))
     smtp_user: str = _env("SMTP_USER", "")
