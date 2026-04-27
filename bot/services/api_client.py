@@ -1,0 +1,45 @@
+from __future__ import annotations
+
+from typing import Any
+
+import httpx
+
+from bot.config import settings
+
+
+def _normalize_list(payload: Any) -> list[dict[str, Any]]:
+    if isinstance(payload, list):
+        return [item for item in payload if isinstance(item, dict)]
+    if isinstance(payload, dict):
+        data = payload.get("data") or payload.get("vendors") or payload.get("items")
+        if isinstance(data, list):
+            return [item for item in data if isinstance(item, dict)]
+    return []
+
+
+async def _get(path: str) -> Any | None:
+    if not settings.backend_base_url:
+        return None
+
+    timeout = httpx.Timeout(settings.request_timeout_seconds)
+    try:
+        async with httpx.AsyncClient(timeout=timeout) as client:
+            response = await client.get(f"{settings.backend_base_url}{path}")
+    except httpx.HTTPError:
+        return None
+
+    if response.status_code != 200:
+        return None
+    return response.json()
+
+
+async def get_active_vendors() -> list[dict[str, Any]]:
+    payload = await _get("/api/v1/vendors")
+    return _normalize_list(payload)
+
+
+async def get_vendor_catalogue(vendor_id: str) -> list[dict[str, Any]]:
+    if not vendor_id:
+        return []
+    payload = await _get(f"/api/v1/catalogue/vendor/{vendor_id}")
+    return _normalize_list(payload)
