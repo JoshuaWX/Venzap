@@ -1,0 +1,1295 @@
+You are a senior UI/UX engineer and creative director at a world-class
+design agency. You have been hired to build the frontend for VENZAP —
+a Nigerian chat-commerce startup. Your work must look like it came out
+of a top-tier agency like Pentagram, Ueno, or Fantasy Interactive.
+NOT like a generic AI-generated template. Every pixel must feel
+intentional, human, and premium.
+
+Do not use boring layouts. Do not use generic cards. Do not produce
+anything that looks like a default shadcn or MUI template. This must
+be distinctive, editorial, and culturally relevant to Nigeria while
+feeling globally competitive.
+
+═══════════════════════════════════════════════════════════
+                   WHAT IS VENZAP?
+═══════════════════════════════════════════════════════════
+
+Venzap is a two-sided chat-commerce platform. Local vendors
+(food sellers, grocery stores, pharmacies, fashion vendors)
+register on a web dashboard. Customers order from those vendors
+entirely through a Telegram bot — no app download needed.
+Payments are powered by Payaza (Nigerian fintech).
+
+The product starts with food vendors and expands to all vendor
+types. Built for Nigeria. Designed to scale across Africa.
+
+Target users:
+  → Vendors: local Nigerian business owners, not very technical,
+    need something simple and trustworthy
+  → The website: modern, professional, builds trust immediately
+
+═══════════════════════════════════════════════════════════
+                   TECH STACK
+═══════════════════════════════════════════════════════════
+
+Next.js 14 (App Router)
+TypeScript
+Tailwind CSS
+Framer Motion (for ALL animations — use it heavily)
+shadcn/ui (as a base only — override all default styling)
+Lucide React (icons)
+Recharts (for earnings chart)
+
+═══════════════════════════════════════════════════════════
+              DESIGN DIRECTION — READ THIS CAREFULLY
+═══════════════════════════════════════════════════════════
+
+AESTHETIC: Dark-luxury fintech. Think Stripe meets Paystack
+meets a premium Nigerian brand. Serious but not cold. Confident
+but approachable. The kind of product that makes a Nigerian
+vendor say "this looks legit, I can trust this with my money."
+
+WHAT MAKES THIS UNFORGETTABLE:
+  → Liquid orange gradient masks that bleed through dark surfaces
+  → Text that clips through background images/gradients (background-clip: text)
+  → Large typographic moments — headlines that COMMAND the screen
+  → Subtle noise texture overlay on dark backgrounds (grain effect)
+  → Glassmorphism cards with orange-tinted borders, not plain dark cards
+  → A custom cursor: small orange dot that grows on hover
+  → Scroll-triggered animations — every section slides in as you scroll
+  → The word "Venzap" should always feel like a brand moment, never plain
+
+NEVER DO:
+  ❌ Purple gradients on white backgrounds
+  ❌ Inter or Roboto as the main font
+  ❌ Flat boring cards with no depth
+  ❌ Generic hero with stock image background
+  ❌ Default shadcn component styling
+  ❌ Cookie-cutter layouts (big text left, image right)
+  ❌ Predictable section order that every SaaS uses
+  ❌ Overusing emojis as design elements
+
+═══════════════════════════════════════════════════════════
+                   DESIGN TOKENS
+═══════════════════════════════════════════════════════════
+
+COLOURS (define as CSS variables in globals.css):
+
+  --bg-base:          #07070F    (deepest background)
+  --bg-surface:       #0E0E1A    (card surfaces)
+  --bg-elevated:      #161625    (elevated cards, modals)
+  --bg-subtle:        #1C1C2E    (table rows, input bg)
+
+  --orange-primary:   #F97316    (primary brand)
+  --orange-bright:    #FB923C    (lighter orange for gradients)
+  --orange-dim:       #C2410C    (darker orange, depth)
+  --orange-glow:      rgba(249, 115, 22, 0.15)
+  --orange-glow-sm:   rgba(249, 115, 22, 0.08)
+
+  --text-primary:     #F8FAFC    (headings, important text)
+  --text-secondary:   #94A3B8    (body text, descriptions)
+  --text-muted:       #475569    (placeholder, labels)
+
+  --border-default:   rgba(255, 255, 255, 0.06)
+  --border-orange:    rgba(249, 115, 22, 0.3)
+  --border-bright:    rgba(249, 115, 22, 0.6)
+
+  --green:            #22C55E
+  --red:              #EF4444
+  --blue:             #3B82F6
+  --purple:           #8B5CF6
+
+TYPOGRAPHY:
+
+  Import from Google Fonts:
+    "Syne" — weights 400, 700, 800 (ALL display/heading text)
+    "Cabinet Grotesk" — weights 300, 400, 500, 700 (ALL body text)
+
+  If Cabinet Grotesk unavailable, use "DM Sans" as fallback.
+  NEVER use Inter, Roboto, or system fonts.
+
+  Scale:
+    --text-display:   clamp(52px, 8vw, 96px) / Syne 800
+    --text-h1:        clamp(36px, 5vw, 64px) / Syne 700
+    --text-h2:        clamp(28px, 3.5vw, 48px) / Syne 700
+    --text-h3:        24px / Syne 700
+    --text-h4:        18px / Cabinet Grotesk 600
+    --text-body-lg:   17px / Cabinet Grotesk 400 / lh: 1.75
+    --text-body:      14px / Cabinet Grotesk 400 / lh: 1.65
+    --text-label:     11px / Cabinet Grotesk 700 /
+                      letter-spacing: 0.1em / uppercase
+
+EFFECTS — IMPLEMENT THESE:
+
+  Noise texture:
+    Apply a subtle grain overlay to ALL dark backgrounds.
+    Use an SVG filter or a pseudo-element with:
+    background-image: url("data:image/svg+xml,...")
+    opacity: 0.035
+    This adds depth and prevents flat digital look.
+
+  Orange glow orbs:
+    Large blurred ellipses positioned absolutely behind content.
+    background: radial-gradient(ellipse, var(--orange-glow) 0%, transparent 70%)
+    Use on hero, CTA sections. Give depth without being distracting.
+
+  Glassmorphism cards:
+    background: rgba(14, 14, 26, 0.7)
+    backdrop-filter: blur(20px) saturate(180%)
+    border: 1px solid rgba(255, 255, 255, 0.07)
+    Apply on cards that sit over gradient/glow backgrounds.
+
+  Text gradient mask:
+    Apply to large hero headlines and stat numbers:
+    background: linear-gradient(135deg, #FB923C 0%, #F97316 40%, #FBBF24 100%)
+    -webkit-background-clip: text
+    -webkit-text-fill-color: transparent
+    background-clip: text
+
+  Orange top-edge glow on cards:
+    Cards on dashboard: box-shadow: 0 -1px 0 0 var(--orange-primary)
+    on their top border — gives a subtle "lit from above" look.
+
+  Scan line mask effect:
+    On the hero section, apply a very subtle repeating-linear-gradient
+    with 1px dark lines at 2px intervals, opacity 0.03.
+    Creates a slight screen/monitor texture. Very subtle.
+
+ANIMATIONS (use Framer Motion for all):
+
+  Page load: staggered fade-up. Each section element enters with:
+    initial: { opacity: 0, y: 24 }
+    animate: { opacity: 1, y: 0 }
+    transition: { duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }
+    Stagger delay: 0.08s between children
+
+  Scroll animations (use Framer Motion's useInView):
+    Every section triggers on 20% visibility
+    Same fade-up pattern, staggered by 0.1s
+
+  Number count-up: animate stat numbers from 0 to final value
+    over 1.8 seconds on scroll into view. Use spring physics.
+
+  Hover on interactive cards:
+    whileHover: { y: -3, borderColor: "rgba(249,115,22,0.4)" }
+    transition: { duration: 0.2 }
+
+  CTA button:
+    whileHover: { scale: 1.02, boxShadow: "0 0 30px rgba(249,115,22,0.4)" }
+    whileTap: { scale: 0.98 }
+
+  Custom cursor (on desktop only):
+    Small 8px orange dot that follows cursor with a spring lag.
+    On hover over links/buttons: expands to 32px circle,
+    border: 1px solid orange, background: transparent.
+    Built with Framer Motion useMotionValue + spring.
+
+═══════════════════════════════════════════════════════════
+              PAGE 1 — LANDING PAGE (/)
+═══════════════════════════════════════════════════════════
+
+NAVBAR:
+  Position: fixed, full-width, z-50
+  Initial: fully transparent background
+  On scroll > 60px: background transitions to
+    rgba(7, 7, 15, 0.85) + backdrop-filter: blur(16px)
+    with bottom border: 1px solid rgba(255,255,255,0.06)
+  Smooth transition between states (0.3s ease)
+
+  Layout:
+    Left: Venzap logo — the letter "V" in orange with
+          a small lightning bolt svg inside it, then
+          "enzap" in Syne 800 white. NOT an emoji.
+          Build this as an SVG-based logo component.
+    Centre (desktop): nav links
+      "How It Works" | "For Vendors" | "Pricing" | "FAQ"
+      14px Cabinet Grotesk 500, white/60%
+      Hover: white/100% with orange underline that slides in
+    Right:
+      "Login" ghost button — border: 1px solid rgba(255,255,255,0.15)
+      "Get Started Free" orange button with right-arrow icon
+    Mobile: hamburger → fullscreen overlay menu
+      Links animate in with stagger, large Syne 800 font
+
+──────────────────────────────────────────────────────────
+HERO SECTION:
+──────────────────────────────────────────────────────────
+
+Height: 100vh, display: flex, align-items: center
+Background: var(--bg-base)
+Overlays (absolutely positioned, pointer-events: none):
+  1. Noise texture pseudo-element (full coverage, opacity 0.035)
+  2. Orange glow orb: 800px × 500px ellipse, top-center,
+     radial-gradient orange, opacity 0.12, blur: 80px
+  3. Scan line overlay (full coverage, opacity 0.025)
+  4. Bottom gradient fade:
+     linear-gradient(to bottom, transparent 60%, var(--bg-base) 100%)
+
+Layout: centred column, max-width 880px, margin: auto
+
+BADGE (above headline):
+  Pill shape, border: 1px solid var(--border-orange)
+  Background: rgba(249, 115, 22, 0.08)
+  Left: small pulsing green dot (CSS animation)
+  Text: "Now Live on Telegram — Zero App Download Required"
+  12px Cabinet Grotesk 500, orange colour
+
+HEADLINE:
+  Display size (clamp 52px to 96px), Syne 800
+  Line 1: "Your Business." — white
+  Line 2: "Their Telegram." — use text-gradient mask (orange)
+  Line 3: "Everyone Wins." — white, slightly smaller (0.85em)
+  Line height: 1.05
+  Letter spacing: -0.03em (tight, premium feel)
+  Each line animates in separately with stagger
+
+SUBHEADLINE:
+  max-width: 560px, centred
+  17px Cabinet Grotesk 400, var(--text-secondary), lh: 1.75
+  "Venzap connects local vendors to customers through
+   Telegram — no app download, no commission at launch,
+   no complexity. Just orders flowing in from day one."
+
+CTA ROW:
+  Two buttons side by side, gap: 16px
+  Primary: "Register Your Business Free →"
+    Height: 52px, px: 28px
+    Background: var(--orange-primary)
+    Text: white, 15px Cabinet Grotesk 600
+    Border-radius: 8px
+    Framer Motion hover: scale 1.02 + glow shadow
+    Right arrow icon from Lucide that nudges right on hover
+
+  Secondary: "See How It Works"
+    Height: 52px, px: 28px
+    Background: transparent
+    Border: 1px solid rgba(255,255,255,0.15)
+    Text: white/80%, 15px Cabinet Grotesk 500
+    Hover: border becomes white/30%
+
+TRUST STRIP below CTAs:
+  Small row: avatar stack (4 overlapping initials circles)
+           + "Joined by 200+ vendors in Lagos, Abuja & PH"
+  12px Cabinet Grotesk 400, white/40%
+  Animate in last with 0.4s delay
+
+HERO BOTTOM — FLOATING MOCKUP:
+  Below the CTA area, show a floating dark card mockup
+  This represents the Telegram chat ordering experience:
+
+  Card: glassmorphism style, 360px wide, 280px tall
+        border: 1px solid rgba(255,255,255,0.08)
+        border-radius: 20px
+        box-shadow: 0 40px 80px rgba(0,0,0,0.6)
+        Floating animation: gentle 3px up-down loop (4s ease-in-out)
+
+  Inside the card (simulate Telegram chat):
+    Header: bot avatar (orange V logo) + "Venzap Bot" + green dot
+    3 chat bubbles staggered:
+      Bot: "Welcome back! Choose your vendor 🍛"
+           [Mama Tunde's Kitchen]  [Campus Chops]
+      User (right-aligned, orange bubble):
+           "Mama Tunde's Kitchen"
+      Bot: "🧾 Jollof Rice ×1 — ₦1,500
+            Total: ₦2,000 · [Confirm & Pay ✅]"
+
+  Floating badge on the card: "⚡ Powered by Payaza"
+  Small pill, bottom-right of card
+
+  Second smaller card behind and to the right (depth layering):
+    Shows vendor dashboard stats mockup (blurred, smaller)
+    Creates a 3D layered depth effect
+
+──────────────────────────────────────────────────────────
+STATS / NUMBERS SECTION:
+──────────────────────────────────────────────────────────
+
+Background: linear gradient from var(--bg-base) to var(--bg-surface)
+No card wrappers — stats sit directly on the background
+Horizontal row on desktop, 2×2 grid on mobile
+
+Each stat:
+  Large number: clamp(40px, 6vw, 72px), Syne 800
+  Apply text-gradient mask (orange to yellow gradient)
+  Count-up animation on scroll into view
+  Label: 12px Cabinet Grotesk 700, uppercase, letter-spacing 0.1em
+         var(--text-muted) colour
+  Subtle dividers between stats: 1px vertical line, rgba white 8%
+
+Stats:
+  "40M+" — "Local vendors in Nigeria"
+  "3%"   — "Currently have digital presence"
+  "₦0"   — "Commission at launch"
+  "10min" — "Average vendor setup time"
+
+──────────────────────────────────────────────────────────
+PROBLEM SECTION:
+──────────────────────────────────────────────────────────
+
+Layout: Editorial two-column on desktop
+Left col (40%): sticky section label + heading
+Right col (60%): scrolling problem cards
+
+Section label: "THE PROBLEM" — 11px, orange, uppercase, letter-spacing
+
+Left heading:
+  "The market exists.
+   The infrastructure
+   doesn't." — Syne 700, H2, white
+  Below: 2-3 sentence context in Cabinet Grotesk, grey
+
+Right column — 4 problem cards staggered on scroll:
+
+  Each card: glassmorphism style
+  Left accent: 3px solid vertical bar in respective colour
+  Icon: relevant Lucide icon in a small coloured circle
+
+  Card 1 — orange accent:
+    Icon: PercentCircle
+    "20–30% Commission Per Order"
+    "Glovo and Chowdeck take a massive cut before vendors
+     see a single naira. Local vendors simply cannot survive
+     those margins."
+
+  Card 2 — red accent:
+    Icon: Clock
+    "Weeks to Get Listed"
+    "Complex onboarding processes lock out thousands of
+     small vendors who just want to sell their food online."
+
+  Card 3 — grey accent:
+    Icon: MessageSquareOff
+    "Zero Digital Records"
+    "Orders arrive as WhatsApp voice notes. Payments happen
+     in cash. There is no history, no accountability, no growth."
+
+  Card 4 — blue accent:
+    Icon: Download
+    "Customers Won't Download Another App"
+    "Every new platform means another app, another account,
+     another set of card details. Customers give up before
+     they even order."
+
+──────────────────────────────────────────────────────────
+SOLUTION SECTION:
+──────────────────────────────────────────────────────────
+
+Background: var(--bg-surface)
+Large decorative orange glow orb behind content, opacity: 0.08
+
+Section label: "THE SOLUTION"
+
+LARGE HEADLINE (full-width, centred):
+  "Chat. Order. Done."
+  Display size, Syne 800
+  "Chat." — white
+  "Order." — orange gradient mask
+  "Done." — white
+  After headline: thin orange underline (3px, 120px wide, centred)
+
+SOLUTION GRID below headline:
+  Two large cards side by side
+
+  LEFT CARD — FOR VENDORS:
+    Background: var(--bg-elevated)
+    Top: small orange pill badge "FOR VENDORS"
+    Heading: "Online in 10 Minutes." Syne 700, 28px
+    Feature list with orange tick icons:
+      ✓ Register on venzap.ng — no technical knowledge needed
+      ✓ Add your catalogue, prices and delivery fee
+      ✓ Go live immediately — orders start flowing in
+      ✓ Manage everything from one real-time dashboard
+      ✓ Get paid automatically — no cash chasing
+    Bottom: subtle image/illustration of dashboard UI mockup
+      (static screenshot-style mockup, no live component)
+
+  RIGHT CARD — FOR CUSTOMERS:
+    Background: var(--bg-elevated) with Telegram-blue top glow
+    Top: small blue pill badge "FOR CUSTOMERS"
+    Heading: "Order From Telegram\nYou Already Have." Syne 700, 28px
+    Feature list with blue tick icons:
+      ✓ No app download. Just open Telegram.
+      ✓ Sign up in under 2 minutes — right in the chat
+      ✓ Get your personal Nigerian bank account instantly
+      ✓ Order in English or Nigerian Pidgin
+      ✓ Pay from your Venzap wallet — wallet debited instantly
+    Bottom: Telegram chat bubble mockup (same as hero but smaller)
+
+──────────────────────────────────────────────────────────
+HOW IT WORKS SECTION:
+──────────────────────────────────────────────────────────
+
+Background: var(--bg-base)
+Section label: "HOW IT WORKS"
+Heading: "From signup to first order\nin under 10 minutes." Syne 700
+
+Layout: Horizontal process flow with connecting lines
+
+5 steps in a horizontal row (vertical stack on mobile):
+
+  Each step:
+    Large step number: "01" "02" etc. — Syne 800, 64px
+    Faint (opacity 0.06) in white behind the step content
+    Small icon circle: 44px, orange/10% bg, icon in orange
+
+    Step 01 — Sign Up
+      Icon: UserPlus
+      "Sign Up on Telegram"
+      "Find @VenzapBot. Create your account in 2 minutes
+       — right inside the chat."
+
+    Step 02 — Get Your Account
+      Icon: Building2
+      "Receive Your Bank Account"
+      "Payaza assigns you a real Nigerian bank account
+       number. Yours permanently."
+
+    Step 03 — Fund Wallet
+      Icon: ArrowDownToLine
+      "Transfer From Any Bank"
+      "Send money from GTB, Access, Opay or any bank.
+       Balance updates in seconds."
+
+    Step 04 — Order
+      Icon: MessageCircle
+      "Chat to Order"
+      "Tell the bot what you want in English or Pidgin.
+       AI understands. Cart is built."
+
+    Step 05 — Delivered
+      Icon: CheckCircle2
+      "Food Arrives. Wallet Debited."
+      "Payment releases to vendor on delivery.
+       Both sides protected."
+
+  Connecting line between steps:
+    Dashed orange line running horizontally between step circles
+    Animated: dashes flow from left to right (CSS animation)
+    On mobile: vertical dashed line
+
+  Below steps — PIDGIN EXAMPLE:
+    Dark pill/card, centred, italic
+    "abeg I wan chop jollof and chicken from mama tunde"
+    Arrow "→"
+    "Order placed. Wallet debited. Vendor notified. ✅"
+    14px, orange italic left, white right
+
+──────────────────────────────────────────────────────────
+PAYAZA INTEGRATION SECTION:
+──────────────────────────────────────────────────────────
+
+Background: var(--bg-surface)
+Layout: full-bleed with overlapping design elements
+
+Left: Large decorative text "PAYAZA" at 25% opacity, Syne 900
+      positioned absolutely, rotated -90deg on the left edge
+      Creates a depth/editorial effect
+
+Heading: "Every naira. Secured." Syne 700, H2
+
+Subheading: "Venzap is not Payaza-integrated.
+             Venzap is Payaza-dependent."
+Cabinet Grotesk, orange, italic, 18px
+
+4 integration feature blocks (2×2 grid):
+
+  Block 1:
+    Icon: BanknoteIcon (Lucide) in orange circle
+    Title: "Static Virtual Account"
+    Body: "Every user gets a permanent Nigerian bank account
+           on signup. Fund wallet by plain bank transfer —
+           the same as sending money to a friend."
+
+  Block 2:
+    Icon: Link2 (Lucide) in green circle
+    Title: "Payment Link API"
+    Body: "Alternative funding via Payaza-hosted payment page.
+           Card, USSD or bank transfer. Sent directly in chat."
+
+  Block 3:
+    Icon: ShieldCheck (Lucide) in blue circle
+    Title: "Escrow + Payout API"
+    Body: "Funds held on order. Released via Payaza Payout API
+           when vendor confirms delivery. Both sides protected."
+
+  Block 4:
+    Icon: Webhook (Lucide) in purple circle
+    Title: "Signed Webhooks"
+    Body: "HMAC-SHA512 verification on every event. Full
+           idempotency. Every naira tracked. Nothing duplicated."
+
+Bottom: "Powered by PAYAZA" wordmark strip
+  Dark strip, centred, "Powered by" in grey, "PAYAZA" in orange
+  Syne 800. Same energy as a co-branding lockup.
+
+──────────────────────────────────────────────────────────
+AI SECTION:
+──────────────────────────────────────────────────────────
+
+Background: var(--bg-base) with purple glow orb
+
+Section label: "AI INTELLIGENCE"
+Heading: "It speaks Pidgin." Syne 800, display size
+Sub: "GPT-4o mini understands exactly how your customers type."
+     Cabinet Grotesk, grey
+
+VISUAL DEMO CARD (the hero of this section):
+  Large glassmorphism card, max-width 720px, centred
+  Shows the AI parsing flow:
+
+  Top: User input line
+    Label "USER TYPES:" in small grey uppercase
+    Input box: "abeg I wan chop jollof and 2 chickens from mama tunde"
+    Orange italic text, Cabinet Grotesk, 16px
+
+  Divider with animated ↓ arrow (pulses orange)
+
+  Middle: AI Processing indicator
+    Small animated dots (thinking animation)
+    Label "AI PARSING..." then switches to "UNDERSTOOD ✓"
+    Progress bar fills in orange: 0% → 100% over 1.5s loop
+
+  Bottom: Parsed output (code block style)
+    Background: #0A0A14, border-radius: 8px, font: monospace
+    Orange syntax highlighting:
+    {
+      "intent":      "select_items",
+      "vendor":      "Mama Tunde's Kitchen",
+      "items":       ["Jollof Rice ×1", "Grilled Chicken ×2"],
+      "confidence":  0.94
+    }
+
+Two columns below the card:
+
+  Left — LLM Layer (purple accent):
+    "Understands English + Pidgin"
+    "Classifies your intent"
+    "Extracts vendor, items, address"
+    "Answers questions naturally"
+
+  Right — Rule Engine (orange accent):
+    "Executes all payment logic"
+    "AI never touches your money"
+    "8-point guardrail validator"
+    "Silent fallback if AI fails"
+
+──────────────────────────────────────────────────────────
+VENDOR CATEGORIES SECTION:
+──────────────────────────────────────────────────────────
+
+Background: var(--bg-surface)
+Heading: "One Platform.\nEvery Vendor." Syne 700, H2, centred
+Sub: "Starting with food. Expanding to every local business category."
+
+5 category cards in a horizontal scroll row (or grid on desktop):
+
+  Each card: glassmorphism, border-radius: 16px, padding: 28px
+  On hover: border transitions to orange, card lifts -4px
+
+  Card 1 — FOOD (Active — no badge, orange border):
+    Large emoji: 🍛
+    Name: "Food Vendors" Syne 700 18px white
+    Sub: "Restaurants, mama puts, home chefs"
+    Status pill: "● Live Now" — green
+
+  Card 2 — GROCERY (Coming Soon):
+    Large emoji: 🛒
+    Name: "Grocery Stores"
+    Sub: "Supermarkets, provision stores"
+    Status pill: "Coming Soon" — grey
+
+  Card 3 — PHARMACY:
+    Large emoji: 💊
+    Name: "Pharmacies"
+    Sub: "Drugs, healthcare products"
+    Status pill: "Coming Soon" — grey
+
+  Card 4 — LAUNDRY:
+    Large emoji: 👕
+    Name: "Laundry Services"
+    Sub: "Wash, iron, dry-clean"
+    Status pill: "Coming Soon" — grey
+
+  Card 5 — FASHION:
+    Large emoji: 👗
+    Name: "Fashion Vendors"
+    Sub: "Clothing, accessories, aso-ebi"
+    Status pill: "Coming Soon" — grey
+
+──────────────────────────────────────────────────────────
+COMPARISON SECTION:
+──────────────────────────────────────────────────────────
+
+Background: var(--bg-base)
+Heading: "15x cheaper than the alternative." Syne 700 H2
+The "15x" should use the orange gradient text mask and be huge.
+
+Below heading — two large comparison cards side by side:
+
+  LEFT CARD — GLOVO/CHOWDECK:
+    Background: rgba(239, 68, 68, 0.05)
+    Border: 1px solid rgba(239, 68, 68, 0.15)
+    Header: "Glovo / Chowdeck" — red, small
+    Large number: "₦300,000" — Syne 800, 56px, red
+    Sub: "Commission taken per month"
+    Sub2: "from a vendor doing ₦1M in sales"
+    Both in grey, small
+
+  RIGHT CARD — VENZAP (highlighted, larger):
+    Background: rgba(249, 115, 22, 0.06)
+    Border: 1px solid rgba(249, 115, 22, 0.3)
+    Header: "Venzap" — orange, small
+    Large number: "₦20,000" — Syne 800, 56px, orange
+    Sub: "Total cost per month"
+    Sub2: "same vendor, same ₦1M in sales"
+    Tag below: "That's 15× cheaper." — Syne 700, green
+
+Comparison table below cards:
+  Rows: Commission | Onboarding | Vendor types | Customer needs
+        | AI support
+  Left column: grey "Glovo" values
+  Right column: green Venzap values
+  Table background: #0E0E1A, subtle row alternating
+
+──────────────────────────────────────────────────────────
+EXPANSION ROADMAP SECTION:
+──────────────────────────────────────────────────────────
+
+Background: var(--bg-surface)
+Layout: Timeline style — horizontal flow of 3 phases
+
+Heading: "Built for today.\nDesigned for tomorrow."
+
+Phase cards (3 phases, connected by animated dashed line):
+
+  Phase 1 — NOW — orange:
+    "Telegram + Food Vendors"
+    Items: Telegram bot, Food vendors, Payaza wallet,
+           AI ordering, Vendor dashboard
+
+  Phase 2 — NEXT — blue:
+    "Expand Vendor Categories"
+    Items: Grocery + Pharmacy, Laundry + Fashion,
+           Pro subscriptions live, Advanced analytics
+
+  Phase 3 — FUTURE (with funding) — green:
+    "WhatsApp + Pan-Africa"
+    Items: WhatsApp Business API, All vendor categories,
+           Other African markets, White-label licensing
+
+Note about WhatsApp:
+  Small footnote under Phase 3:
+  "Currently on Telegram (free, unrestricted API). Moving to
+   WhatsApp with funding — wider reach, same great experience."
+  10px, grey, italic
+
+──────────────────────────────────────────────────────────
+FINAL CTA SECTION:
+──────────────────────────────────────────────────────────
+
+Full-height section (min-height: 80vh)
+Background: var(--bg-base)
+Large orange glow orb centred behind content, blur: 200px
+
+Centred column layout:
+
+LARGE HEADLINE:
+  "The market is ready." — white, Syne 800, display
+  "Your business should be too." — orange gradient mask
+
+Spacer
+
+CTA button: "Register Your Business — It's Free"
+  Larger than all other buttons: height 60px, px: 40px
+  Orange background, white text, 17px Cabinet Grotesk 600
+  Glow effect on hover: 0 0 40px rgba(249,115,22,0.5)
+  Framer Motion: scale 1.03 on hover, 0.97 on tap
+
+Under button:
+  "No credit card required. Zero commission at launch."
+  12px Cabinet Grotesk 400, grey
+
+FOOTER:
+  Minimal, dark, 1px top border rgba white 6%
+  Left: Venzap SVG logo (same as navbar)
+  Centre: "support@venzap.ng"
+  Right: "Powered by PAYAZA" in orange
+  Bottom row: "© 2025 Venzap. Built for Nigerian vendors."
+  All text grey/40%, 12px
+
+═══════════════════════════════════════════════════════════
+              PAGE 2 — VENDOR DASHBOARD LAYOUT
+═══════════════════════════════════════════════════════════
+
+Build the full authenticated dashboard layout as a shell.
+All dashboard pages share this layout.
+
+SIDEBAR (240px, fixed, full height):
+  Background: #07070F
+  Right border: 1px solid rgba(255,255,255,0.05)
+
+  TOP:
+    Venzap SVG logo (same component as navbar)
+    28px padding all sides
+    Bottom: 1px separator line
+
+  NAV ITEMS (each 44px tall, 12px horizontal padding):
+    Icon (Lucide, 18px) + Label (14px Cabinet Grotesk 500)
+    Items:
+      LayoutDashboard  "Dashboard"
+      BookOpen         "Catalogue"
+      ShoppingBag      "Orders"    + unread count badge
+      BarChart3        "Earnings"
+      Separator line (subtle)
+      Settings         "Settings"  (future, greyed out)
+      LogOut           "Logout"    (bottom, red on hover)
+
+    Active state:
+      Background: rgba(249, 115, 22, 0.1)
+      Text: #F97316
+      Left border: 3px solid #F97316
+      Icon: orange
+    Inactive:
+      Text: #475569
+      Hover: text white, bg rgba white 4%
+
+  BOTTOM of sidebar (above logout):
+    Vendor avatar: 36px circle, orange bg, initials in white Syne 700
+    Vendor name: 13px Cabinet Grotesk 600, white, truncated
+    "View profile" link: 11px, orange, underline on hover
+
+MOBILE SIDEBAR:
+  Hidden. Replaced by bottom tab bar (5 icons, no labels)
+  Active tab: orange icon with small orange dot below
+  Backdrop blur overlay when mobile menu opens
+
+TOP HEADER (64px, fixed):
+  Background: rgba(7, 7, 15, 0.9) + backdrop-filter: blur(12px)
+  Bottom border: 1px solid rgba(255,255,255,0.05)
+
+  Left: Page title — 18px Syne 700 white
+        Changes based on current page
+
+  Right (flex row, gap: 16px, align: centre):
+
+    OPEN/CLOSED TOGGLE:
+      Custom built — NOT a standard toggle
+      When OPEN:
+        Background: rgba(34, 197, 94, 0.1)
+        Border: 1px solid rgba(34, 197, 94, 0.3)
+        Pill shape, border-radius: 20px
+        Pulsing green dot + "Open for Orders" in green, 12px
+      When CLOSED:
+        Background: rgba(100, 116, 139, 0.1)
+        Border: 1px solid rgba(100, 116, 139, 0.2)
+        Grey dot + "Closed" in grey
+      Click fires API call, optimistic update, revert on error
+
+    NOTIFICATION BELL:
+      Bell icon (Lucide Bell), 20px, white/70%
+      Orange badge: absolute top-right, 18px circle, 10px Syne 700
+      Click → slide-down panel below header:
+        Max-height: 320px, overflow scroll
+        Background: #0E0E1A, border: 1px solid rgba(255,255,255,0.06)
+        border-radius: 12px, box-shadow: 0 20px 60px rgba(0,0,0,0.5)
+        Each notification:
+          Left: orange dot
+          "New Order #VNZ-XXXX" 13px white
+          "Jollof Rice ×1 — ₦2,500" 12px grey
+          "2 mins ago" right-aligned, 11px muted
+          Bottom border separator
+
+    VENDOR AVATAR:
+      Same as sidebar bottom — 36px orange circle
+      Click → dropdown: "View Profile" | "Logout"
+
+═══════════════════════════════════════════════════════════
+              PAGE 3 — /vendor/dashboard (MAIN)
+═══════════════════════════════════════════════════════════
+
+GREETING ROW:
+  "Good morning, Mama Tunde 👋"
+  Syne 700, 26px, white
+  Sub: "Here's how your business is doing today."
+  14px Cabinet Grotesk 400, grey
+
+STAT CARDS (4 in a row, 2×2 on mobile):
+  Each card: #0E0E1A background, 1px border rgba white 6%
+  border-radius: 16px, padding: 24px
+  Top-left 3px colour accent bar sits on TOP border of card
+  Icon: top-right, 20px, faint (opacity 0.2), relevant colour
+
+  Card 1 — Orders Today (orange accent):
+    Label: "ORDERS TODAY" — 10px orange uppercase letter-spacing
+    Value: "24" — 40px Syne 800, white, count-up animation
+    Trend: "↑ 3 more than yesterday" — 12px green
+
+  Card 2 — Revenue Today (green accent):
+    Label: "REVENUE TODAY"
+    Value: "₦38,500" — 40px Syne 800, white
+    Trend: "↑ ₦6,200 vs yesterday" — 12px green
+
+  Card 3 — Total Orders (blue accent):
+    Label: "TOTAL ORDERS"
+    Value: "312" — count from zero on page load
+    Trend: "Since you joined" — 12px grey (no arrow)
+
+  Card 4 — Catalogue Items (purple accent):
+    Label: "CATALOGUE ITEMS"
+    Value: "14"
+    Sub: "12 available · 2 unavailable" — 12px grey
+
+RECENT ORDERS:
+  Section header: "Recent Orders" Syne 700 18px white
+  Right: "View all orders →" 13px orange link with arrow
+
+  Table:
+    Background: #0E0E1A, border-radius: 16px
+    Header: 10px Cabinet Grotesk 700, uppercase, #475569
+    No outer border — inner borders only (1px rgba white 4%)
+
+    Columns:
+      ORDER ID | ITEMS | ADDRESS | TOTAL | TIME | STATUS | ACTION
+
+    Row hover: background shifts to rgba(255,255,255,0.02)
+    ORDER ID: "#VNZ-2847" — 13px orange, Cabinet Grotesk 600
+    ITEMS: truncated list, 13px white
+    ADDRESS: 12px grey, max 30 chars + "..."
+    TOTAL: "₦4,500" — 13px Syne 700 white
+    TIME: "32 mins ago" — 12px grey
+    STATUS: coloured pill badge
+    ACTION: "View" button — ghost, small, 11px
+
+  Empty state (when no orders):
+    Centred in table area, 120px height
+    ShoppingBag icon, 32px, grey
+    "No orders yet" Syne 700 16px white
+    "Share your Venzap bot link to start receiving orders."
+    14px grey
+    "Copy Bot Link" orange button below
+
+NEW ORDER REAL-TIME TOAST:
+  Position: fixed bottom-right, z-50
+  Slides in from right (Framer Motion: x: 120 → 0)
+  Background: #161625
+  Left border: 4px solid #F97316
+  border-radius: 12px, padding: 16px 20px
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6)
+
+  Row 1: 🔔 "New Order!" — Syne 700 15px orange
+  Row 2: "#VNZ-2851 · Jollof Rice ×1, Chicken ×2" — 13px white
+  Row 3: "₦4,500 · Just now" — 12px grey
+  Button: "View Order" — 12px orange, underline, right-aligned
+  Close X: top-right, grey, 12px
+  Auto-dismiss: 8 seconds with shrinking progress bar
+  Audio: play a short ping sound on arrival
+
+═══════════════════════════════════════════════════════════
+              PAGE 4 — /vendor/catalogue
+═══════════════════════════════════════════════════════════
+
+HEADER ROW:
+  Left: "Catalogue" Syne 700 24px white
+        + grey pill: "14 items"
+  Right: "Add Item" orange button with Plus icon
+
+ADD ITEM PANEL (slide-down on button click):
+  Framer Motion: height 0 → auto, opacity 0 → 1
+  Background: #161625
+  Border: 1px solid rgba(249, 115, 22, 0.2)
+  border-radius: 16px, padding: 28px, margin-bottom: 24px
+
+  Heading: "Add New Item" Syne 700 18px white
+  Grid: 3 columns on desktop, 1 on mobile
+
+  Fields:
+    Item Name — full-width top row
+    Emoji — 1 char input (large, centred, 32px placeholder "🍛")
+    Category — dropdown styled with dark bg
+    Price (₦) — number, orange ₦ prefix inside input
+    Description — textarea, 3 rows, optional label
+    Available — custom styled toggle (orange when on)
+
+  Buttons (right-aligned):
+    "Cancel" ghost | "Add to Catalogue" orange
+
+CATALOGUE TABLE:
+  Background: #0E0E1A, border-radius: 16px, overflow: hidden
+
+  Header: same style as dashboard table
+
+  Columns: EMOJI | ITEM NAME | CATEGORY | PRICE | AVAILABLE | ACTIONS
+
+  EMOJI: displayed at 22px text
+  ITEM NAME: 14px Cabinet Grotesk 500, white
+  CATEGORY: small pill badge (grey bg, grey text, 10px uppercase)
+  PRICE: "₦1,500" — 14px Syne 700 orange
+  AVAILABLE: custom small toggle (20px, orange on / grey off)
+             Clicking fires API immediately, optimistic update
+  ACTIONS: three-dot icon → dropdown: Edit | Delete
+
+  INLINE EDIT (when Edit clicked):
+    Row transforms in-place
+    Name, category, price become dark input fields
+    Save (CheckCircle icon, orange) | Cancel (X icon, grey)
+    ESC cancels
+
+  DELETE MODAL:
+    Backdrop: rgba 0,0,0,0.7, backdrop-filter: blur(4px)
+    Card: #1C1C2E, border-radius: 20px, padding: 32px, max-w: 400px
+    Centred on screen, slide-down animation
+    "Delete this item?" Syne 700 20px white
+    Item name shown in orange quotes
+    "This cannot be undone."
+    "Delete" red button | "Keep It" ghost
+
+  EMPTY STATE:
+    🍽️ emoji, 48px
+    "Your catalogue is empty"
+    "Add your first item to start taking orders."
+    "Add First Item" orange button
+
+═══════════════════════════════════════════════════════════
+              PAGE 5 — /vendor/orders
+═══════════════════════════════════════════════════════════
+
+FILTER TABS ROW:
+  Horizontal scrollable on mobile
+  Tab items: All (24) | Pending (3) | Preparing (2) |
+             Out for Delivery (1) | Delivered (18)
+  Numbers in grey brackets — updates in real-time
+
+  Active tab:
+    Text: white, Cabinet Grotesk 600
+    Bottom border: 2px solid orange
+    Transition: 0.2s ease
+  Inactive:
+    Text: #475569
+    Hover: #94A3B8
+
+ORDER CARDS GRID (2 columns desktop, 1 column mobile):
+  gap: 16px
+
+  Each order card:
+    Background: #0E0E1A
+    border: 1px solid rgba(255,255,255,0.06)
+    border-radius: 16px, padding: 20px
+    Hover: border shifts to rgba(249,115,22,0.2), y: -2px
+
+    TOP ROW:
+      Left: "#VNZ-2847" — Syne 700, 14px, orange
+      Right: Status badge (coloured pill)
+
+    DIVIDER: 1px rgba white 6%
+
+    MIDDLE CONTENT:
+      ITEMS ROW:
+        Small label: "ITEMS" — 10px grey uppercase
+        Content: "Jollof Rice ×1, Grilled Chicken ×2"
+                 13px white Cabinet Grotesk
+
+      ADDRESS ROW:
+        MapPin icon (12px, grey) inline
+        "12 Lagos Street, Yaba" — 12px grey
+
+      PRICE + TIME ROW:
+        Left: "₦4,500" — Syne 700, 22px, white
+        Right: "45 mins ago" — 12px #475569
+
+    BOTTOM:
+      "Update Status" button:
+        Full-width, 44px, orange background
+        ChevronRight icon inside
+        Clicking expands status panel below
+
+  STATUS UPDATE PANEL (slide down from card bottom):
+    Background: #161625
+    Border-top: 1px solid rgba(255,255,255,0.06)
+    border-radius: 0 0 16px 16px
+    padding: 16px 20px
+
+    "Mark order as:"
+    Radio options (only valid next statuses shown):
+      Each: custom styled radio + status name + status badge
+    Buttons: "Confirm Update" orange | "Never Mind" ghost
+
+  NEW ORDER ANIMATION (SSE/Socket):
+    New card slides in from top with spring animation
+    Card has orange border that pulses twice then normalises
+    Page auto-scrolls to show the new card
+
+═══════════════════════════════════════════════════════════
+              PAGE 6 — /vendor/earnings
+═══════════════════════════════════════════════════════════
+
+SUMMARY CARDS (3 in a row):
+
+  Card 1 — Total Earned:
+    "TOTAL EARNED (ALL TIME)" — label
+    "₦284,500" — Syne 800, 42px, orange gradient mask
+
+  Card 2 — This Month:
+    "THIS MONTH"
+    "₦38,500" — Syne 800, 42px, white
+
+  Card 3 — Pending Release:
+    "PENDING RELEASE"
+    "₦12,000" — Syne 800, 42px, grey
+    "Releases on delivery confirmation" — 11px orange
+
+EARNINGS CHART:
+  Card: #0E0E1A, border-radius: 16px, padding: 24px
+  Title: "Revenue — Last 7 Days" Syne 700 16px white
+
+  Recharts BarChart:
+    Bar fill: linear gradient — orange top to orange-dim bottom
+    Background: transparent (chart sits on card bg)
+    X-axis: grey labels, no line
+    Y-axis: grey labels, no line
+    Grid: horizontal only, 1px rgba white 4%
+    Tooltip: custom dark card tooltip
+      Shows "₦X,XXX · N orders"
+      Background: #161625, border: 1px orange, border-radius: 8px
+
+DATE FILTER ROW:
+  Above transaction table
+  Quick filter pills: "Today" | "This Week" | "This Month" | "Custom"
+  Active pill: orange bg, white text
+  Inactive: rgba white 6% bg, grey text
+  "Custom" opens a date range picker (shadcn Popover)
+
+TRANSACTION HISTORY TABLE:
+  Same table styling as orders/dashboard
+  Columns: ORDER ID | DATE | AMOUNT | STATUS
+  STATUS values:
+    Released → green pill
+    Pending → orange pill
+    Failed → red pill
+
+  Pagination row below:
+    "← Prev | 1 of 12 | Next →"
+    Grey text, orange current page number
+
+═══════════════════════════════════════════════════════════
+              PAGE 7 — /vendor/register (3-STEP FORM)
+═══════════════════════════════════════════════════════════
+
+LAYOUT: Split screen (60/40) on desktop
+Full width on mobile (right panel disappears)
+
+LEFT SIDE (form):
+  Background: var(--bg-base)
+  Max-width: 480px, centred in its column
+
+  TOP: Venzap logo link (takes user to /)
+  PROGRESS INDICATOR:
+    3 dots in a row
+    Active: orange, 10px
+    Completed: orange with checkmark, 10px
+    Upcoming: grey, 8px
+    Label below: "Step 1 of 3 — Business Info"
+    11px Cabinet Grotesk 500, grey
+
+RIGHT SIDE (brand panel):
+  Background: #0E0E1A
+  Orange glow orb top-left, opacity 0.1
+
+  LARGE QUOTE:
+    "Your business,
+     online in
+     10 minutes."
+    Syne 800, 42px
+    White with "10 minutes" in orange
+
+  FEATURE LIST:
+    3 rows, each: orange circle check + text
+    ✓ Zero commission at launch
+    ✓ Real-time order dashboard
+    ✓ Powered by Payaza — every naira secured
+
+  BOTTOM:
+    "Already trusted by 200+ vendors"
+    Small grey text with avatar stack
+
+STEP 1 — Business Info:
+  Heading: "Create your account" Syne 700 H3 white
+  Sub: "Join vendors already selling on Venzap."
+
+  FORM FIELDS (dark input style):
+    Each field:
+      Label: 11px Cabinet Grotesk 700 uppercase orange letter-spacing
+      Input: #0E0E1A bg, 1px border rgba white 6%, 48px height
+             14px Cabinet Grotesk 400 white
+             Placeholder: #475569
+             Focus: border orange, ring rgba orange 20%
+             Error: border red, ring rgba red 20%
+             Helper text: 12px grey below
+
+    Business Name
+    Email Address
+    Phone Number
+      Left inside input: "+234" in grey (fixed prefix)
+      User types rest of number
+    Password
+      Right inside input: eye icon toggle show/hide
+    Confirm Password
+
+  PASSWORD STRENGTH BAR:
+    Below password field
+    4-segment bar, fills left to right
+    Weak: 1 red segment
+    Fair: 2 orange segments
+    Good: 3 yellow segments
+    Strong: 4 green segments
+    Label changes: "Weak" | "Fair" | "Good" | "Strong"
+
+  BUTTON: "Continue →" orange, full-width, 52px
+  LINK below: "Already registered? Sign in"
+
+STEP 2 — Business Details:
+  Heading: "About your business"
+
+  Fields:
+    Business Address — textarea 3 rows
+    Description — textarea 3 rows, "(Optional)" in label
+    Vendor Type — custom select:
+      Dropdown: dark bg, orange chevron on right
+      Options show emoji + label:
+        🍛 Food Vendor
+        🛒 Grocery Store
+        💊 Pharmacy
+        👕 Laundry Services
+        👗 Fashion Vendor
+        📦 Other
+    Delivery Fee (₦)
+      Left prefix: "₦" in orange inside input
+
+  BUTTONS: "← Back" ghost | "Continue →" orange
+
+STEP 3 — OTP Verification:
+  Heading: "Check your inbox"
+  Sub: "We sent a 6-digit code to {email}"
+       Email shown in orange
+
+  6 OTP INPUT BOXES:
+    Each: 52px × 60px
+    Background: #0E0E1A
+    Border: 1px solid rgba(255,255,255,0.1)
+    border-radius: 10px
+    Text: Syne 800, 24px, centred, white
+    Focus: border orange + ring
+    Filled: background rgba(249,115,22,0.08)
+    Auto-advance to next box on digit entry
+    Backspace goes to previous
+    Paste fills all 6 at once
+
+  RESEND ROW:
+    "Didn't receive it?"
+    "Resend code" — orange link
+    Shows 60-second countdown timer while cooling down:
+    "Resend in 58s" — grey, disabled
+
+  ON SUCCESS:
+    All 6 boxes turn green border
+    Checkmark animation (Framer Motion draw-on)
+    "✓ Verified!" in green below boxes
+    Short delay → redirect to dashboard with fade
+
+═══════════════════════════════════════════════════════════
+              PAGE 8 — /vendor/login
+═══════════════════════════════════════════════════════════
+
+Same split layout as register.
+Same right panel.
+
+LEFT SIDE:
+  Heading: "Welcome back." Syne 700 H2 white
+  Sub: "Sign in to your Venzap vendor account."
+
+  Fields:
+    Email Address
+    Password (show/hide toggle)
+
+  Forgot password: right-aligned, 12px, orange, underline
+
+  "Sign In" button: orange, full-width, 52px
+
+  Below button:
+    "Don't have an account? Register free →"
+    13px Cabinet Grotesk, grey + orange link
+
+FORGOT PASSWORD (same page, different state):
+  3-state component:
+    State 1: email input → "Send Code"
+    State 2: OTP input (same 6-box component from register)
+    State 3: new password + confirm + "Reset Password" button
+
+═══════════════════════════════════════════════════════════
+              SHARED/REUSABLE COMPONENTS
+═══════════════════════════════════════════════════════════
+
+Build all of these as reusable TypeScript components:
+
+<VenzapLogo size="sm|md|lg" />
+  SVG: lightning bolt "V" + "enzap" in Syne 800
+  Size prop controls overall scale
+
+<StatCard value label trend accentColor icon />
+  As described in dashboard section
+
+<OrderStatusBadge status />
+  Returns correct coloured pill
+  All 6 statuses covered
+
+<VenzapButton variant="primary|ghost|danger" loading size />
+  All button variants, loading state, sizes
+
+<VenzapInput label placeholder error helperText />
+  Dark styled input with all states
+
+<OTPInput length onComplete />
+  6-box OTP with all keyboard/paste behaviours
+
+<ToastNotification />
+  Orange-bordered slide-in notification
+
+<SkeletonCard /> <SkeletonTable rows />
+  Shimmer loading skeletons — used on ALL loading states
+  Never show a spinner for page-level data loading
+
+<ConfirmModal title body onConfirm danger />
+  Reusable modal with blur backdrop
+
+<EmptyState emoji heading sub cta />
+  Centred empty state
+
+<LiveIndicator />
+  "● Live" small green dot + text for real-time connection
+
+═══════════════════════════════════════════════════════════
+              FINAL QUALITY REQUIREMENTS
+═══════════════════════════════════════════════════════════
+
+1.  Every hover state must be defined and smooth (0.2s ease-out)
+2.  Every loading state uses skeleton, never a full-page spinner
+3.  Every form field must have error, focus and filled states
+4.  All animations must use Framer Motion — no CSS animations
+    except the noise texture and scan line effects
+5.  Custom cursor on desktop (orange dot, expands on hover)
+6.  Fully responsive: mobile (< 768px), tablet, desktop
+7.  Dashboard sidebar collapses to bottom tab bar on mobile
+8.  No Lorem Ipsum — all placeholder text is Nigerian-context
+    (vendor names like "Mama Tunde's Kitchen", Lagos addresses etc.)
+9.  The word "Venzap" should feel like a brand moment every time
+    it appears — Syne 800, never just plain body text
+10. The orange (#F97316) must feel rare and intentional —
+    used for emphasis only, never as large backgrounds
+11. Noise texture on ALL dark backgrounds — opacity: 0.035
+12. Real-time elements must show a "● Live" connection indicator
+13. Zero generic shadcn default styling — override everything
+14. Production-ready code. No TODO comments. No placeholder logic.
+    Every component complete and connected.
+
+BUILD THE LANDING PAGE FIRST, THEN THE DASHBOARD LAYOUT,
+THEN EACH DASHBOARD PAGE IN ORDER. SHOW COMPLETE CODE FOR
+EACH. DO NOT SUMMARISE OR TRUNCATE ANY COMPONENT.

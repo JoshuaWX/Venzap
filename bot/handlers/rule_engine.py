@@ -160,7 +160,11 @@ async def handle_intent(intent_payload: dict[str, Any], update: Update, context:
         await wallet_handler.show_wallet_menu(update, context)
         return
 
-    if intent in {"order_status", "order_history"}:
+    if intent == "order_status":
+        await order_handler.show_order_menu(update, context, latest_only=True)
+        return
+
+    if intent == "order_history":
         await order_handler.show_order_menu(update, context)
         return
 
