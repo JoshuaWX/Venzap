@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from decimal import Decimal
+import base64
 import hashlib
 import hmac
 
@@ -29,6 +30,20 @@ class PayazaError(RuntimeError):
     pass
 
 
+def _normalize_key(raw_key: str) -> str:
+    value = raw_key.strip()
+    value = value.replace("-----BEGIN SECRET KEY-----", "")
+    value = value.replace("-----END SECRET KEY-----", "")
+    return "".join(value.split())
+
+
+def _encoded_api_key(raw_key: str) -> str:
+    normalized = _normalize_key(raw_key)
+    if not normalized:
+        raise PayazaError("Payaza secret key is not configured.")
+    return base64.b64encode(normalized.encode("utf-8")).decode("utf-8")
+
+
 def _extract_payload(response_json: dict) -> dict:
     if isinstance(response_json.get("data"), dict):
         return response_json["data"]
@@ -46,7 +61,7 @@ def _extract_payment_url(payload: dict) -> str:
 def verify_hmac_sha512(raw_body: bytes, signature: str, secret: str | None = None) -> bool:
     if not signature:
         return False
-    secret_value = secret or settings.payaza_secret_key
+    secret_value = _normalize_key(secret or settings.payaza_secret_key)
     if not secret_value:
         return False
     expected = hmac.new(secret_value.encode("utf-8"), raw_body, hashlib.sha512).hexdigest()
@@ -72,7 +87,7 @@ async def create_virtual_account(
         "reference": reference,
     }
     headers = {
-        "Authorization": f"Payaza {settings.payaza_secret_key}",
+        "Authorization": f"Payaza {_encoded_api_key(settings.payaza_secret_key)}",
         "Content-Type": "application/json",
     }
 
@@ -126,7 +141,7 @@ async def create_payment_link(
         payload["callback_url"] = callback_url
 
     headers = {
-        "Authorization": f"Payaza {settings.payaza_secret_key}",
+        "Authorization": f"Payaza {_encoded_api_key(settings.payaza_secret_key)}",
         "Content-Type": "application/json",
     }
 

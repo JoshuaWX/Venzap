@@ -1,0 +1,136 @@
+# =========================
+# ENV & SECRETS
+# =========================
+.env
+.env.*
+.env.example
+.env.local
+
+!.env.example
+
+# Python env files
+*.env
+
+# Private keys / certs
+*.pem
+*.key
+*.crt
+secrets.json
+
+# =========================
+# NODE / NEXT.JS / FRONTEND
+# =========================
+node_modules/
+.next/
+out/
+build/
+dist/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# Cache
+.cache/
+.next/cache/
+
+# TypeScript
+*.tsbuildinfo
+
+# =========================
+# PYTHON (FastAPI, Celery, etc.)
+# =========================
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Python build
+build/
+dist/
+*.egg-info/
+
+# =========================
+# DATABASES
+# =========================
+*.sqlite
+*.db
+
+# Alembic (keep migrations, ignore compiled junk)
+alembic/versions/*.pyc
+
+# =========================
+# REDIS / CELERY
+# =========================
+celerybeat-schedule
+celerybeat.pid
+
+# =========================
+# DOCKER
+# =========================
+.dockerignore
+Dockerfile.local
+docker-compose.override.yml
+
+# Docker volumes (VERY IMPORTANT)
+docker-data/
+volumes/
+*.tar
+
+# =========================
+# NGINX
+# =========================
+nginx/logs/
+nginx/temp/
+
+# =========================
+# TESTS / COVERAGE
+# =========================
+coverage/
+htmlcov/
+.pytest_cache/
+
+# =========================
+# EDITOR / OS
+# =========================
+.DS_Store
+Thumbs.db
+
+.vscode/
+.idea/
+
+# =========================
+# SOCKET.IO / TEMP
+# =========================
+tmp/
+temp/
+
+# =========================
+# LANGCHAIN / AI
+# =========================
+# embeddings, caches, local vector stores
+*.faiss
+*.pkl
+*.joblib
+
+# tiktoken cache (sometimes created locally)
+.cache/tiktoken/
+
+# =========================
+# POSTGRES (if local dumps)
+# =========================
+*.sql
+*.dump
+
+# =========================
+# MISC
+# =========================
+*.bak
+*.swp
