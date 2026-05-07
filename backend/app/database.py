@@ -18,12 +18,24 @@ DATABASE_URL = os.getenv(
 )
 
 
+# asyncpg doesn't accept sslmode as a URL query parameter
+# Strip it if present and use connect_args instead
+db_url = DATABASE_URL
+if "?sslmode=" in db_url:
+    db_url = db_url.split("?")[0]
+
+# Use SSL for Supabase (remote connections require SSL)
+connect_args = {}
+if "supabase" in DATABASE_URL:
+    connect_args["ssl"] = True
+
 engine = create_async_engine(
-    DATABASE_URL,
+    db_url,
     future=True,
     pool_pre_ping=True,
     pool_size=20,
     max_overflow=0,
+    connect_args=connect_args if connect_args else None,
 )
 
 

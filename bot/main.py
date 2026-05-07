@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import logging
+import signal
+import sys
 
 from telegram.ext import Application, CallbackQueryHandler, CommandHandler, MessageHandler, filters
 
@@ -26,7 +28,19 @@ def _build_application() -> Application:
 def main() -> None:
     application = _build_application()
     logger.info("Starting Venzap bot")
-    application.run_polling(close_loop=False)
+    
+    # Handle graceful shutdown on SIGTERM/SIGINT
+    def sig_handler(signum, frame):
+        logger.info(f"Received signal {signum}, shutting down gracefully...")
+        # Stop polling
+        application.stop()
+        sys.exit(0)
+    
+    signal.signal(signal.SIGTERM, sig_handler)
+    signal.signal(signal.SIGINT, sig_handler)
+    
+    # Use idle() to block until shutdown signal is received
+    application.run_polling(close_loop=False, allowed_updates=[])
 
 
 if __name__ == "__main__":
