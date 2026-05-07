@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import json
+import time
+import socket
 from typing import Any, Optional
 
 import redis.asyncio as redis
@@ -9,13 +11,71 @@ from bot.config import settings
 
 
 _STATE_TTL_SECONDS = 86400
-_redis_client: Optional[redis.Redis] = None
 
 
-def _get_client() -> redis.Redis:
+class _MemoryRedis:
+    def __init__(self) -> None:
+        self._store: dict[str, tuple[str, float | None]] = {}
+
+    def _purge(self, key: str) -> None:
+        record = self._store.get(key)
+        if record and record[1] is not None and record[1] <= time.time():
+            self._store.pop(key, None)
+
+    async def ping(self) -> bool:
+        return True
+
+    async def get(self, key: str) -> str | None:
+        self._purge(key)
+        record = self._store.get(key)
+        return record[0] if record else None
+
+    async def setex(self, key: str, ttl: int, value: Any) -> bool:
+        self._store[key] = (str(value), time.time() + max(1, ttl))
+        return True
+
+    async def delete(self, key: str) -> int:
+        return int(self._store.pop(key, None) is not None)
+
+
+class _RedisProxy:
+    def __init__(self) -> None:
+        self._backend: Optional[Any] = None
+        self._memory_backend = _MemoryRedis()
+
+    async def _backend_client(self) -> Any:
+        if self._backend is not None:
+            return self._backend
+
+        client = redis.from_url(settings.redis_url, decode_responses=True)
+        try:
+            hostname = client.connection_pool.connection_kwargs.get("host")
+            if hostname:
+                socket.gethostbyname(str(hostname))
+            await client.ping()
+            self._backend = client
+            return client
+        except Exception:
+            self._backend = self._memory_backend
+            return self._memory_backend
+
+    async def get(self, key: str) -> str | None:
+        return await (await self._backend_client()).get(key)
+
+    async def setex(self, key: str, ttl: int, value: Any) -> bool:
+        return await (await self._backend_client()).setex(key, ttl, value)
+
+    async def delete(self, key: str) -> int:
+        return await (await self._backend_client()).delete(key)
+
+
+_redis_client: Optional[_RedisProxy] = None
+
+
+def _get_client() -> _RedisProxy:
     global _redis_client
     if _redis_client is None:
-        _redis_client = redis.from_url(settings.redis_url, decode_responses=True)
+        _redis_client = _RedisProxy()
     return _redis_client
 
 

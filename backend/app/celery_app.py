@@ -1,19 +1,51 @@
 from __future__ import annotations
 
 import os
+import socket
+from urllib.parse import urlparse
 
 from celery import Celery
+
+from app.config import settings
 
 
 redis_url = os.getenv("REDIS_URL", "redis://localhost:6379")
 
-celery_app = Celery("venzap", broker=redis_url, backend=redis_url)
+
+def _uses_placeholder_redis(url: str) -> bool:
+    try:
+        parsed = urlparse(url)
+    except Exception:
+        return True
+
+    return parsed.hostname in {"localhost", "127.0.0.1", "redis", "db"} or not parsed.hostname
+
+
+def _can_resolve_redis_host(url: str) -> bool:
+    parsed = urlparse(url)
+    if not parsed.hostname:
+        return False
+    try:
+        socket.gethostbyname(parsed.hostname)
+    except OSError:
+        return False
+    return True
+
+
+use_memory_fallback = not _can_resolve_redis_host(redis_url) or _uses_placeholder_redis(redis_url) and settings.environment.lower() == "production"
+broker_url = "memory://" if use_memory_fallback else redis_url
+result_backend = "cache+memory://" if use_memory_fallback else redis_url
+
+celery_app = Celery("venzap", broker=broker_url, backend=result_backend)
 celery_app.conf.update(
     task_serializer="json",
     accept_content=["json"],
     result_serializer="json",
     timezone="UTC",
     enable_utc=True,
+    task_always_eager=use_memory_fallback,
+    task_eager_propagates=use_memory_fallback,
+    broker_connection_retry_on_startup=False,
 )
 
 # Auto-discover tasks from app.services module

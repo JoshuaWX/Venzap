@@ -103,7 +103,10 @@ def process_payaza_webhook(self, payload: dict, payaza_ref: str) -> None:
 
 
 def queue_payaza_webhook(payload: dict, payaza_ref: str) -> None:
-    process_payaza_webhook.delay(payload, payaza_ref)
+    try:
+        process_payaza_webhook.delay(payload, payaza_ref)
+    except Exception:
+        asyncio.run(_process_event(payload, payaza_ref))
 
 
 def parse_json_body(raw_body: bytes) -> dict[str, Any] | None:

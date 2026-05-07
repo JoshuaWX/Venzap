@@ -12,26 +12,28 @@ services:
       - key: PYTHON_VERSION
         value: 3.11.9
 
-  - type: worker
+  - type: web
     name: venzap-celery
     env: python
     rootDir: backend
     buildCommand: pip install -r requirements.txt
-    startCommand: celery -A app.celery_app:celery_app worker --loglevel=INFO
+    startCommand: python render_worker_entry.py
     autoDeploy: true
     plan: starter
+    healthCheckPath: /health
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.9
 
-  - type: worker
+  - type: web
     name: venzap-bot
     env: python
     rootDir: bot
     buildCommand: pip install -r requirements.txt
-    startCommand: python main.py
+    startCommand: python render_bot_entry.py
     autoDeploy: true
     plan: starter
+    healthCheckPath: /health
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.9
