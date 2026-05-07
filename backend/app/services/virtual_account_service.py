@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 from dataclasses import dataclass
+import logging
 from decimal import Decimal
 
 from sqlalchemy import select
@@ -159,10 +160,14 @@ async def handle_dva_credit(payload: dict) -> None:
 
 
 def queue_virtual_account_provisioning(user_id: str) -> None:
+    logger = logging.getLogger("venzap.dva")
     try:
         provision_virtual_account_task.delay(user_id)
     except Exception:
-        asyncio.run(_provision_by_user_id(user_id))
+        try:
+            asyncio.run(_provision_by_user_id(user_id))
+        except Exception:
+            logger.exception("Failed to provision virtual account for user %s", user_id)
 
 
 @celery_app.task(bind=True, max_retries=3)
