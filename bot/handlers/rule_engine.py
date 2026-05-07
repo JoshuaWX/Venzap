@@ -10,13 +10,11 @@ from bot.handlers import help as help_handler
 from bot.handlers import order as order_handler
 from bot.handlers import start as start_handler
 from bot.handlers import wallet as wallet_handler
-from bot.keyboards.catalogue_keyboard import build_catalogue_keyboard
 from bot.keyboards.order_keyboard import build_main_menu
 from bot.keyboards.vendor_keyboard import build_vendor_keyboard
 from bot.services import api_client
 from bot.state import redis_state
 from bot.utils import formatters
-
 
 logger = logging.getLogger("venzap.bot.rule_engine")
 
@@ -32,6 +30,7 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 
     await query.answer()
     data = query.data or ""
+
     if data.startswith("intent:"):
         intent = data.split(":", 1)[1]
         await handle_intent({"intent": intent}, update, context)
@@ -52,6 +51,125 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         return
 
     await help_handler.send_help(update, context)
+
+
+def _merge_cart(cart: list[dict[str, Any]], items: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    merged: dict[str, int] = {str(item.get("name")): int(item.get("quantity", 1)) for item in cart if item.get("name")}
+    for item in items:
+        name = item.get("name")
+        if not name:
+            continue
+        qty = int(item.get("quantity", 1))
+        merged[name] = merged.get(name, 0) + max(1, qty)
+    return [{"name": name, "quantity": qty} for name, qty in merged.items()]
+
+
+def _remove_from_cart(cart: list[dict[str, Any]], items: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    remove_names = {str(item.get("name")) for item in items if item.get("name")}
+    return [item for item in cart if item.get("name") not in remove_names]
+
+
+async def _show_catalogue(update: Update, context: ContextTypes.DEFAULT_TYPE, vendor_name: str) -> None:
+    message = update.effective_message
+    if not message:
+        return
+
+    vendors = await api_client.get_active_vendors()
+    vendor = next(
+        (item for item in vendors if item.get("name") == vendor_name or item.get("business_name") == vendor_name),
+        None,
+    )
+    if not vendor:
+        await message.reply_text("Vendor not found.", reply_markup=build_main_menu())
+        return
+
+    vendor_id = str(vendor.get("id"))
+    items = await api_client.get_vendor_catalogue(vendor_id)
+
+    # Persist mapping so checkout can resolve name -> catalogue_item_id.
+    for it in items:
+        item_name = str(it.get("name") or "").strip()
+        catalogue_item_id = str(it.get("id") or "").strip()
+        if item_name and catalogue_item_id:
+            await redis_state.set_catalogue_item_id(update.effective_user.id, vendor_id, item_name, catalogue_item_id)
+
+    text = f"Catalogue for {vendor_name}:\n" + formatters.format_catalogue(items)
+    # reuse existing keyboard component by reconstructing expected structure
+    from bot.keyboards.catalogue_keyboard import build_catalogue_keyboard
+
+    await message.reply_text(text, reply_markup=build_catalogue_keyboard(items))
+
+
+async def _handle_confirm_order(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    message = update.effective_message
+    user = update.effective_user
+    if not message or not user:
+        return
+
+    cookies = await redis_state.get_auth_cookies(user.id)
+    if not cookies:
+        await message.reply_text("Please sign in first.", reply_markup=build_main_menu())
+        return
+
+    vendor_name = await redis_state.get_selected_vendor(user.id)
+    if not vendor_name:
+        await message.reply_text("Please choose a vendor first.", reply_markup=build_main_menu())
+        return
+
+    vendors = await api_client.get_active_vendors()
+    vendor = next(
+        (item for item in vendors if item.get("name") == vendor_name or item.get("business_name") == vendor_name),
+        None,
+    )
+    if not vendor:
+        await message.reply_text("Vendor not found.", reply_markup=build_main_menu())
+        return
+    vendor_id = str(vendor.get("id"))
+
+    cart = await redis_state.get_cart(user.id)
+    if not cart:
+        await message.reply_text("Your cart is empty.", reply_markup=build_main_menu())
+        return
+
+    address = await redis_state.get_delivery_address(user.id)
+    if not address:
+        await message.reply_text("Please provide a delivery address first.", reply_markup=build_main_menu())
+        return
+
+    # Resolve cart item names to backend catalogue_item_id UUIDs
+    resolved_items: list[dict[str, Any]] = []
+    for entry in cart:
+        item_name = str(entry.get("name") or "").strip()
+        qty = int(entry.get("quantity") or 1)
+        if not item_name:
+            continue
+
+        catalogue_item_id = await redis_state.get_catalogue_item_id(user.id, vendor_id, item_name)
+        if not catalogue_item_id:
+            await message.reply_text(
+                f"Could not resolve item '{item_name}'. Please re-open the catalogue and try again.",
+                reply_markup=build_main_menu(),
+            )
+            return
+
+        resolved_items.append({"catalogue_item_id": catalogue_item_id, "quantity": qty})
+
+    order = await api_client.place_order(
+        cookies=cookies,
+        vendor_id=vendor_id,
+        delivery_address=address,
+        note=None,
+        items=resolved_items,
+    )
+
+    if not order:
+        await message.reply_text("Order failed. Please try again.", reply_markup=build_main_menu())
+        return
+
+    await redis_state.clear_cart(user.id)
+    await redis_state.clear_delivery_address(user.id)
+
+    await message.reply_text(f"Order placed! Order ID: {order.get('id')}", reply_markup=build_main_menu())
 
 
 async def handle_intent(intent_payload: dict[str, Any], update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -90,6 +208,7 @@ async def handle_intent(intent_payload: dict[str, Any], update: Update, context:
         if not vendor_name:
             await message.reply_text("Please choose a vendor first.", reply_markup=build_main_menu())
             return
+
         await redis_state.set_selected_vendor(user.id, vendor_name)
         await _show_catalogue(update, context, vendor_name)
         return
@@ -99,6 +218,7 @@ async def handle_intent(intent_payload: dict[str, Any], update: Update, context:
         if not items:
             await message.reply_text("Tell me which items you want.", reply_markup=build_main_menu())
             return
+
         cart = await redis_state.get_cart(user.id)
         updated = _merge_cart(cart, items)
         await redis_state.set_cart(user.id, updated)
@@ -111,6 +231,7 @@ async def handle_intent(intent_payload: dict[str, Any], update: Update, context:
         if not items:
             await message.reply_text("Tell me which item to remove.", reply_markup=build_main_menu())
             return
+
         cart = await redis_state.get_cart(user.id)
         updated = _remove_from_cart(cart, items)
         await redis_state.set_cart(user.id, updated)
@@ -125,6 +246,7 @@ async def handle_intent(intent_payload: dict[str, Any], update: Update, context:
 
     if intent == "clear_cart":
         await redis_state.clear_cart(user.id)
+        await redis_state.clear_delivery_address(user.id)
         await message.reply_text("Cart cleared.", reply_markup=build_main_menu())
         return
 
@@ -138,16 +260,7 @@ async def handle_intent(intent_payload: dict[str, Any], update: Update, context:
         return
 
     if intent == "confirm_order":
-        cart = await redis_state.get_cart(user.id)
-        address = await redis_state.get_delivery_address(user.id)
-        if not cart:
-            await message.reply_text("Your cart is empty.", reply_markup=build_main_menu())
-            return
-        if not address:
-            await message.reply_text("Please provide a delivery address first.", reply_markup=build_main_menu())
-            return
-        summary = "Order summary:\n" + formatters.format_cart(cart) + f"\nAddress: {address}"
-        await order_handler.show_order_menu(update, context, summary)
+        await _handle_confirm_order(update, context)
         return
 
     if intent == "cancel_order":
@@ -156,7 +269,24 @@ async def handle_intent(intent_payload: dict[str, Any], update: Update, context:
         await message.reply_text("Order cancelled.", reply_markup=build_main_menu())
         return
 
-    if intent in {"check_balance", "fund_wallet", "view_account"}:
+    if intent == "view_account":
+        cookies = await redis_state.get_auth_cookies(user.id)
+        if not cookies:
+            await message.reply_text("Please sign in first.", reply_markup=build_main_menu())
+            return
+        account = await api_client.get_user_bank_account(cookies=cookies)
+        if not account:
+            await message.reply_text("Could not fetch bank account.", reply_markup=build_main_menu())
+            return
+        text = (
+            f"Your Venzap account:\n"
+            f"{account.get('bank_name')}: {account.get('account_number')}\n"
+            f"{account.get('account_name')}"
+        )
+        await message.reply_text(text, reply_markup=build_main_menu())
+        return
+
+    if intent in {"check_balance", "fund_wallet"}:
         await wallet_handler.show_wallet_menu(update, context)
         return
 
@@ -170,38 +300,3 @@ async def handle_intent(intent_payload: dict[str, Any], update: Update, context:
 
     await help_handler.send_help(update, context)
 
-
-def _merge_cart(cart: list[dict[str, Any]], items: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    merged = {str(item.get("name")): int(item.get("quantity", 1)) for item in cart if item.get("name")}
-    for item in items:
-        name = item.get("name")
-        if not name:
-            continue
-        qty = int(item.get("quantity", 1))
-        merged[name] = merged.get(name, 0) + max(1, qty)
-    return [{"name": name, "quantity": qty} for name, qty in merged.items()]
-
-
-def _remove_from_cart(cart: list[dict[str, Any]], items: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    remove_names = {str(item.get("name")) for item in items if item.get("name")}
-    return [item for item in cart if item.get("name") not in remove_names]
-
-
-async def _show_catalogue(update: Update, context: ContextTypes.DEFAULT_TYPE, vendor_name: str) -> None:
-    message = update.effective_message
-    if not message:
-        return
-
-    vendors = await api_client.get_active_vendors()
-    vendor = next(
-        (item for item in vendors if item.get("name") == vendor_name or item.get("business_name") == vendor_name),
-        None,
-    )
-    if not vendor:
-        await message.reply_text("Vendor not found.", reply_markup=build_main_menu())
-        return
-
-    vendor_id = str(vendor.get("id"))
-    items = await api_client.get_vendor_catalogue(vendor_id)
-    text = f"Catalogue for {vendor_name}:\n" + formatters.format_catalogue(items)
-    await message.reply_text(text, reply_markup=build_catalogue_keyboard(items))

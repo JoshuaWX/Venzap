@@ -12,6 +12,7 @@ import { TestimonialsSection } from '@/components/testimonials-section';
 import { PricingSection } from '@/components/pricing-section';
 import { CTASection } from '@/components/cta-section';
 import { Footer } from '@/components/footer';
+import { CustomerSection } from '@/components/customer-section';
 
 export default function Home() {
   return (
@@ -19,6 +20,7 @@ export default function Home() {
       <CustomCursor />
       <Navbar />
       <HeroSection />
+      <CustomerSection />
       <StatsSection />
       <FeaturesSection />
       <ProblemsSection />

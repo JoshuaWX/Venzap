@@ -1,8 +1,9 @@
-from __future__ import annotations
-
 from datetime import datetime, timezone
+import asyncio
+import json
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
+from fastapi.responses import StreamingResponse
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -23,6 +24,41 @@ from app.services.order_service import get_vendor_orders, update_order_status
 
 
 router = APIRouter(prefix="/api/v1/vendor", tags=["vendor"])
+
+
+async def _latest_order_snapshot(db: AsyncSession, vendor_id) -> dict[str, str | int | None]:
+	stmt = (
+		select(Order)
+		.where(Order.vendor_id == vendor_id)
+		.order_by(Order.created_at.desc())
+		.limit(1)
+	)
+	latest = (await db.execute(stmt)).scalars().first()
+	if not latest:
+		pending_count = await db.scalar(
+			select(func.count(Order.id)).where(Order.vendor_id == vendor_id, Order.status == "pending")
+		)
+		return {
+			"latest_order_id": None,
+			"latest_order_status": None,
+			"latest_order_total": None,
+			"latest_order_created_at": None,
+			"pending_count": int(pending_count or 0),
+			"total_orders": 0,
+		}
+
+	pending_count = await db.scalar(
+		select(func.count(Order.id)).where(Order.vendor_id == vendor_id, Order.status == "pending")
+	)
+	total_orders = await db.scalar(select(func.count(Order.id)).where(Order.vendor_id == vendor_id))
+	return {
+		"latest_order_id": str(latest.id),
+		"latest_order_status": latest.status,
+		"latest_order_total": str(latest.total),
+		"latest_order_created_at": latest.created_at.isoformat() if latest.created_at else None,
+		"pending_count": int(pending_count or 0),
+		"total_orders": int(total_orders or 0),
+	}
 
 
 def _order_out(order: Order) -> OrderOut:
@@ -238,4 +274,35 @@ async def get_dashboard_stats(
 		revenue_today=revenue_today or 0,
 		total_orders=int(total_orders or 0),
 		catalogue_items=int(catalogue_items or 0),
+	)
+
+
+@router.get("/orders/stream")
+async def stream_order_updates(
+	request: Request,
+	vendor: Vendor = Depends(get_current_vendor),
+	db: AsyncSession = Depends(get_db),
+) -> StreamingResponse:
+	async def event_generator():
+		last_snapshot: dict[str, str | int | None] | None = None
+		while True:
+			if await request.is_disconnected():
+				break
+
+			snapshot = await _latest_order_snapshot(db, vendor.id)
+			if snapshot != last_snapshot:
+				payload = json.dumps(snapshot, default=str)
+				yield f"event: vendor_orders\ndata: {payload}\n\n"
+				last_snapshot = snapshot
+
+			await asyncio.sleep(8)
+
+	return StreamingResponse(
+		event_generator(),
+		media_type="text/event-stream",
+		headers={
+			"Cache-Control": "no-cache",
+			"Connection": "keep-alive",
+			"X-Accel-Buffering": "no",
+		},
 	)

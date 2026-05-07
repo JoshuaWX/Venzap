@@ -3,15 +3,19 @@ from __future__ import annotations
 import ssl
 import smtplib
 from email.message import EmailMessage
+import logging
 
 import anyio
 
 from app.config import settings
 
+logger = logging.getLogger(__name__)
+
 
 def _send_email_sync(to_email: str, subject: str, html_body: str, text_body: str) -> None:
     if not settings.smtp_host or not settings.smtp_user or not settings.smtp_password:
-        raise RuntimeError("SMTP settings are not configured.")
+        logger.warning(f"SMTP not configured, skipping email to {to_email}: {subject}")
+        return
 
     message = EmailMessage()
     message["From"] = settings.smtp_user

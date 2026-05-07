@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 import hmac
 
 from fastapi import HTTPException, status
+import logging
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -84,6 +85,11 @@ async def send_otp(email: str, purpose: str) -> None:
     redis = get_redis_client()
     key = f"{OTP_PREFIX}:{purpose}:{email}"
     await redis.setex(key, settings.otp_ttl_seconds, hashed)
+    # In development, log the OTP so tests can read it from logs when email sending
+    logger = logging.getLogger(__name__)
+    if settings.environment and settings.environment.lower() == "development":
+        logger.warning(f"DEV OTP for {email} (purpose={purpose}): {otp_code}")
+
     await send_otp_email(email, otp_code, purpose)
 
 

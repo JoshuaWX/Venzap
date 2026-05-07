@@ -55,15 +55,15 @@ export function HeroSection() {
             <motion.p
               variants={itemVariants}
               className="text-lg md:text-xl text-foreground/70 leading-relaxed max-w-lg"
-            >
-              VENZAP is the chat-based commerce platform that makes shopping natural. Start on Telegram, expand to WhatsApp, Discord, and more. One platform. Every chat app.
+              >
+              VENZAP is a chat-commerce demo for vendors and customers. Start in Telegram, keep the flow simple, and show how the platform works end to end.
             </motion.p>
 
             <motion.div
               variants={itemVariants}
               className="flex flex-col sm:flex-row gap-4 pt-6"
             >
-              <Link href="/vendor-signup">
+              <Link href="/vendor/register">
                 <motion.button
                   whileHover={{ scale: 1.08, boxShadow: '0 0 40px rgba(249, 115, 22, 0.4)' }}
                   whileTap={{ scale: 0.96 }}
@@ -96,7 +96,7 @@ export function HeroSection() {
                   </motion.div>
                 ))}
               </div>
-              <span className="text-foreground/70 text-sm">Join 5,000+ vendors earning through chat</span>
+              <span className="text-foreground/70 text-sm">Built for a hackathon-friendly vendor demo</span>
             </motion.div>
           </motion.div>
 

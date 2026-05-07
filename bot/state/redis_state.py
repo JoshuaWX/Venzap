@@ -88,3 +88,55 @@ async def set_cart(user_id: int, items: list[dict[str, Any]]) -> None:
 async def clear_cart(user_id: int) -> None:
     redis_client = _get_client()
     await redis_client.delete(_key(user_id, "cart"))
+
+
+def _map_key(user_id: int, vendor_id: str, name: str) -> str:
+    return f"bot:{user_id}:catalogue_map:{vendor_id}:{name}"
+
+
+async def set_catalogue_item_id(user_id: int, vendor_id: str, item_name: str, catalogue_item_id: str) -> None:
+    redis_client = _get_client()
+    await redis_client.setex(_map_key(user_id, vendor_id, item_name), _STATE_TTL_SECONDS, catalogue_item_id)
+
+
+async def get_catalogue_item_id(user_id: int, vendor_id: str, item_name: str) -> str | None:
+    redis_client = _get_client()
+    return await redis_client.get(_map_key(user_id, vendor_id, item_name))
+
+
+async def set_auth_cookies(user_id: int, cookie_header: str) -> None:
+    redis_client = _get_client()
+    await redis_client.setex(_key(user_id, "auth_cookies"), _STATE_TTL_SECONDS, cookie_header)
+
+
+async def get_auth_cookies(user_id: int) -> str | None:
+    redis_client = _get_client()
+    return await redis_client.get(_key(user_id, "auth_cookies"))
+
+
+async def clear_auth_cookies(user_id: int) -> None:
+    redis_client = _get_client()
+    await redis_client.delete(_key(user_id, "auth_cookies"))
+
+
+async def set_registration_field(user_id: int, field: str, value: str) -> None:
+    redis_client = _get_client()
+    await redis_client.setex(_key(user_id, f"reg:{field}"), _STATE_TTL_SECONDS, value)
+
+
+async def get_registration_field(user_id: int, field: str) -> str | None:
+    redis_client = _get_client()
+    return await redis_client.get(_key(user_id, f"reg:{field}"))
+
+
+async def clear_registration(user_id: int) -> None:
+    redis_client = _get_client()
+    keys = [
+        _key(user_id, "reg:full_name"),
+        _key(user_id, "reg:email"),
+        _key(user_id, "reg:phone"),
+        _key(user_id, "reg:password"),
+    ]
+    for k in keys:
+        await redis_client.delete(k)
+

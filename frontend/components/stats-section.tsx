@@ -11,10 +11,10 @@ export function StatsSection() {
   });
 
   const stats = [
-    { value: '10K+', label: 'Merchants', delay: 0 },
-    { value: '500K+', label: 'Transactions', delay: 0.2 },
-    { value: '₦50B+', label: 'Volume', delay: 0.4 },
-    { value: '99.9%', label: 'Uptime', delay: 0.6 },
+    { value: 'Live', label: 'Demo-ready flows', delay: 0 },
+    { value: 'Async', label: 'Order processing', delay: 0.2 },
+    { value: 'Payaza', label: 'Wallet funding', delay: 0.4 },
+    { value: 'Secure', label: 'Cookie auth + guards', delay: 0.6 },
   ];
 
   return (

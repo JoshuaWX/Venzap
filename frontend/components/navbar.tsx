@@ -48,7 +48,7 @@ export function Navbar() {
                 {item.label}
               </Link>
             ))}
-            <Link href="/vendor-signup">
+            <Link href="/vendor/register">
               <button className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-bold hover:bg-primary/90 transition-all">
                 Start Selling
               </button>
@@ -62,13 +62,15 @@ export function Navbar() {
 
           {/* CTA Button & Mobile Menu Toggle */}
           <div className="hidden md:flex items-center gap-4">
-            <motion.button
+              <Link href="/vendor/register">
+              <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               className="px-6 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors"
             >
               Get Started
             </motion.button>
+              </Link>
           </div>
 
           {/* Mobile Menu Toggle */}

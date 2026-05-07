@@ -15,3 +15,17 @@ celery_app.conf.update(
     timezone="UTC",
     enable_utc=True,
 )
+
+# Auto-discover tasks from app.services module
+celery_app.autodiscover_tasks(["app.services"])
+
+# Explicitly import task modules to ensure they are registered
+try:
+    from app.services import virtual_account_service  # noqa: F401
+except ImportError:
+    pass
+
+try:
+    from app.services import webhook_service  # noqa: F401
+except ImportError:
+    pass

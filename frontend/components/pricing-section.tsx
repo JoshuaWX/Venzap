@@ -89,10 +89,10 @@ export function PricingSection() {
           className="text-center mb-16"
         >
           <h2 className="text-4xl md:text-5xl font-bold mb-4 text-balance">
-            Simple, <span className="bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600 bg-clip-text text-transparent">Transparent</span> Pricing
+            Simple, <span className="bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600 bg-clip-text text-transparent">Demo-Friendly</span> Pricing
           </h2>
           <p className="text-lg text-foreground/70 max-w-2xl mx-auto">
-            No hidden fees. Scale as you grow. Plus 1.5% transaction fee on all sales.
+            This is a hackathon pricing mockup for presentation only.
           </p>
         </motion.div>
 

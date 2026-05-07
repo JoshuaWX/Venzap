@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import os
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 
 def _env(name: str, default: str) -> str:
@@ -17,7 +17,9 @@ def _env_list(name: str, default: str) -> list[str]:
 class Settings:
     app_name: str = "Venzap"
     environment: str = _env("ENVIRONMENT", "development")
-    frontend_urls: list[str] = _env_list("FRONTEND_URL", "http://localhost:3000")
+    frontend_urls: list[str] = field(
+        default_factory=lambda: _env_list("FRONTEND_URL", "http://localhost:3000")
+    )
 
     secret_key: str = _env("SECRET_KEY", "")
     algorithm: str = _env("ALGORITHM", "HS256")

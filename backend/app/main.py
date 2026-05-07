@@ -65,9 +65,18 @@ async def http_exception_handler(request: Request, exc: HTTPException):
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    # Convert Pydantic errors to JSON-serializable format
+    errors = [
+        {
+            "loc": list(err.get("loc", [])),
+            "msg": err.get("msg", "Unknown error"),
+            "type": err.get("type", "unknown"),
+        }
+        for err in exc.errors()
+    ]
     return JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-        content=error_payload("validation_error", "Invalid request.", exc.errors()),
+        content=error_payload("validation_error", "Invalid request.", errors),
     )
 
 

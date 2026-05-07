@@ -14,21 +14,21 @@ export function TestimonialsSection() {
     {
       name: 'Chioma Okafor',
       role: 'Fashion Entrepreneur',
-      content: 'VENZAP transformed my business. I went from managing customers via WhatsApp groups to having a complete, professional storefront. Sales increased by 300% in just 3 months.',
+      content: 'VENZAP gives me one clean place to showcase products and take orders. The chat-first flow feels natural and easy to explain to customers.',
       avatar: '👩‍💼',
       rating: 5,
     },
     {
       name: 'Ahmed Hassan',
       role: 'Electronics Retailer',
-      content: 'The payment settlement is instant. No more waiting days for money to arrive. The AI assistant handles so many customer inquiries that I can focus on growing the business.',
+      content: 'The dashboard makes it simple to manage orders, and the Telegram flow is the kind of experience customers immediately understand.',
       avatar: '👨‍💼',
       rating: 5,
     },
     {
       name: 'Tunde Adeyemi',
       role: 'Food & Beverage Owner',
-      content: 'Finally, a platform designed for African businesses. The chat-first approach feels natural to my customers. They love shopping this way, and my repeat purchase rate is incredible.',
+      content: 'It is a strong demo of how local commerce can move into chat without forcing customers to install another app.',
       avatar: '👨‍🍳',
       rating: 5,
     },
@@ -61,10 +61,10 @@ export function TestimonialsSection() {
           className="text-center mb-16"
         >
           <h2 className="text-4xl md:text-5xl font-bold mb-4 text-balance">
-            Loved by <span className="bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600 bg-clip-text text-transparent">Nigerian Vendors</span>
+            Sample feedback from <span className="bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600 bg-clip-text text-transparent">demo vendors</span>
           </h2>
           <p className="text-lg text-foreground/70 max-w-2xl mx-auto">
-            Join thousands of merchants already growing their business on VENZAP.
+            These are example merchant stories for the hackathon presentation.
           </p>
         </motion.div>
 

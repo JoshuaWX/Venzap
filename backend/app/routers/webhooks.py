@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from fastapi import APIRouter, Request
 
 from app.services.payaza_service import verify_hmac_sha512

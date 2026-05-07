@@ -16,17 +16,17 @@ export default function VendorSignup() {
     {
       icon: Zap,
       title: 'Zero Commission',
-      description: 'Keep 100% earnings during launch phase',
+      description: 'Demo onboarding highlights a simple seller-friendly setup',
     },
     {
       icon: TrendingUp,
       title: 'Instant Payouts',
-      description: 'Direct to your bank via Payaza DVA',
+      description: 'Virtual account and webhook flow for wallet funding',
     },
     {
       icon: Users,
       title: 'Multi-Channel',
-      description: 'Start on Telegram, expand to WhatsApp & more',
+      description: 'Telegram first, built to expand to other channels later',
     },
   ];
 
@@ -69,9 +69,9 @@ export default function VendorSignup() {
                 </span>
               </h1>
               <p className="text-xl text-foreground/70 max-w-2xl mb-8">
-                No paperwork. No waiting. No commission. Just you, your products, and thousands of Nigerian customers.
+                A polished hackathon-ready vendor flow for onboarding, catalogue management, and Telegram-first commerce.
               </p>
-              <Link href="/vendor-signup#form">
+              <Link href="/vendor/register">
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
@@ -133,9 +133,11 @@ export default function VendorSignup() {
             transition={{ delay: 0.4 }}
             className="text-center mb-20"
           >
-            <button className="px-8 py-4 bg-primary text-primary-foreground rounded-lg font-bold text-lg hover:bg-primary/90 transition-all shadow-lg shadow-primary/20">
-              Start Your Store Now
-            </button>
+            <Link href="/vendor/register">
+              <button className="px-8 py-4 bg-primary text-primary-foreground rounded-lg font-bold text-lg hover:bg-primary/90 transition-all shadow-lg shadow-primary/20">
+                Start Your Store Now
+              </button>
+            </Link>
             <p className="text-foreground/60 text-sm mt-4">Takes less time than making coffee ☕</p>
           </motion.div>
 
@@ -205,16 +207,16 @@ export default function VendorSignup() {
           >
             <div className="grid grid-cols-3 gap-4">
               <div>
-                <div className="text-3xl font-bold text-orange-500">5K+</div>
-                <p className="text-foreground/60">Active Vendors</p>
+                <div className="text-3xl font-bold text-orange-500">Demo</div>
+                <p className="text-foreground/60">Vendor Flow</p>
               </div>
               <div>
-                <div className="text-3xl font-bold text-orange-500">₦2B+</div>
-                <p className="text-foreground/60">GMV Processed</p>
+                <div className="text-3xl font-bold text-orange-500">Live</div>
+                <p className="text-foreground/60">Dashboard UI</p>
               </div>
               <div>
-                <div className="text-3xl font-bold text-orange-500">0%</div>
-                <p className="text-foreground/60">Commission</p>
+                <div className="text-3xl font-bold text-orange-500">Safe</div>
+                <p className="text-foreground/60">Hackathon Copy</p>
               </div>
             </div>
           </motion.div>
@@ -260,9 +262,11 @@ export default function VendorSignup() {
             transition={{ delay: 0.8 }}
             className="text-center mt-16"
           >
-            <button className="px-12 py-4 bg-primary text-primary-foreground rounded-lg font-bold text-lg hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 mb-4">
-              Create Your Store Now
-            </button>
+            <Link href="/vendor/register">
+              <button className="px-12 py-4 bg-primary text-primary-foreground rounded-lg font-bold text-lg hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 mb-4">
+                Create Your Store Now
+              </button>
+            </Link>
             <p className="text-foreground/60">
               Questions? <Link href="/schedule-demo" className="text-primary hover:underline">Schedule a demo</Link> with our team
             </p>

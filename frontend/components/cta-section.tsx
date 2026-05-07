@@ -25,11 +25,11 @@ export function CTASection() {
         className="relative z-10 max-w-4xl mx-auto text-center"
       >
         <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight text-balance">
-          Ready to Join the <span className="bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600 bg-clip-text text-transparent">Chat Commerce</span> Revolution?
+          Ready to explore the <span className="bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600 bg-clip-text text-transparent">Chat Commerce</span> demo?
         </h2>
 
         <p className="text-lg md:text-xl text-foreground/70 mb-10 max-w-2xl mx-auto leading-relaxed">
-          Start selling today with VENZAP. No credit card required. No setup fees. Just pure commerce innovation.
+          This build shows the vendor, customer, wallet, and Telegram flows in one polished hackathon-ready experience.
         </p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-4">
@@ -39,7 +39,7 @@ export function CTASection() {
               whileTap={{ scale: 0.96 }}
               className="btn-primary w-full sm:w-auto text-lg py-4 px-10 animate-glow"
             >
-              Start Selling Now
+              Open Vendor Demo
             </motion.button>
           </Link>
 
@@ -61,9 +61,9 @@ export function CTASection() {
           transition={{ delay: 0.3 }}
           className="mt-12 pt-8 border-t border-border"
         >
-          <p className="text-foreground/50 text-sm mb-4">Trusted by leading merchants and entrepreneurs</p>
+          <p className="text-foreground/50 text-sm mb-4">Designed to show the full product story in one demo</p>
           <div className="flex flex-wrap items-center justify-center gap-6 md:gap-8">
-            {['Payaza', 'Stripe', 'AWS', 'Vercel'].map((partner, idx) => (
+            {['Telegram', 'Payaza', 'FastAPI', 'Next.js'].map((partner, idx) => (
               <motion.div
                 key={idx}
                 initial={{ opacity: 0, y: 10 }}

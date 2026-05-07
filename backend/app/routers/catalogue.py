@@ -1,6 +1,4 @@
-from __future__ import annotations
-
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -89,13 +87,13 @@ async def delete_catalogue_item(
 	item_id: str,
 	vendor: Vendor = Depends(get_current_vendor),
 	db: AsyncSession = Depends(get_db),
-) -> None:
+) -> Response:
 	item = await db.get(CatalogueItem, item_id)
 	if not item or item.vendor_id != vendor.id:
 		raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Catalogue item not found")
 	await db.delete(item)
 	await db.commit()
-	return None
+	return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @router.put("/{item_id}/toggle", response_model=CatalogueItemOut)

@@ -29,18 +29,18 @@ export function PayazaIntegrationSection() {
                 transition={{ duration: 0.6 }}
               >
                 <h2 className="text-4xl font-bold mb-4">
-                  Powered by <span className="bg-gradient-to-r from-orange-400 to-orange-500 bg-clip-text text-transparent">Payaza</span>
+                  Integrated with <span className="bg-gradient-to-r from-orange-400 to-orange-500 bg-clip-text text-transparent">Payaza</span>
                 </h2>
                 <p className="text-foreground/70 mb-6 leading-relaxed">
-                  We&apos;ve partnered with Payaza, Africa&apos;s leading fintech platform, to bring you secure, instant payments. Your money arrives in your account immediately—no delays, no hassles.
+                  This demo shows the Payaza funding and webhook flow that Venzap is built around. The flow is wired for secure wallet provisioning and callback handling.
                 </p>
                 
                 <ul className="space-y-3 mb-8">
                   {[
-                    'Instant settlement to your bank account',
-                    'Support for all major Nigerian banks',
-                    'Enterprise-grade security and encryption',
-                    '24/7 customer support',
+                    'Virtual account provisioning flow',
+                    'Webhook-based wallet crediting',
+                    'Secure HMAC verification',
+                    'Designed for Nigerian bank transfers',
                   ].map((feature, index) => (
                     <li key={index} className="flex items-center gap-3">
                       <div className="w-2 h-2 rounded-full bg-primary" />
@@ -54,7 +54,7 @@ export function PayazaIntegrationSection() {
                   whileTap={{ scale: 0.95 }}
                   className="px-6 py-3 border border-primary text-primary rounded-lg font-medium hover:bg-primary/10 transition-all"
                 >
-                  Learn More About Payaza
+                  See the Funding Flow
                 </motion.button>
               </motion.div>
 
@@ -70,8 +70,8 @@ export function PayazaIntegrationSection() {
                   <div className="text-7xl font-bold bg-gradient-to-r from-orange-400 to-orange-500 bg-clip-text text-transparent mb-4">
                     ⚡
                   </div>
-                  <p className="text-foreground/60 font-medium">Instant Payments</p>
-                  <p className="text-2xl font-bold text-primary mt-2">100% Secure</p>
+                  <p className="text-foreground/60 font-medium">Wallet Funding Demo</p>
+                  <p className="text-2xl font-bold text-primary mt-2">Webhook Ready</p>
                 </div>
               </motion.div>
             </div>
