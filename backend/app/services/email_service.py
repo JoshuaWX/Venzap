@@ -17,6 +17,11 @@ def _send_email_sync(to_email: str, subject: str, html_body: str, text_body: str
         logger.warning(f"SMTP not configured, skipping email to {to_email}: {subject}")
         return
 
+    placeholder_values = {"your-email@gmail.com", "your-app-password"}
+    if settings.smtp_user in placeholder_values or settings.smtp_password in placeholder_values:
+        logger.warning(f"SMTP placeholder credentials detected, skipping email to {to_email}: {subject}")
+        return
+
     message = EmailMessage()
     message["From"] = settings.smtp_user
     message["To"] = to_email
@@ -25,10 +30,13 @@ def _send_email_sync(to_email: str, subject: str, html_body: str, text_body: str
     message.add_alternative(html_body, subtype="html")
 
     context = ssl.create_default_context()
-    with smtplib.SMTP(settings.smtp_host, settings.smtp_port) as server:
-        server.starttls(context=context)
-        server.login(settings.smtp_user, settings.smtp_password)
-        server.send_message(message)
+    try:
+        with smtplib.SMTP(settings.smtp_host, settings.smtp_port, timeout=20) as server:
+            server.starttls(context=context)
+            server.login(settings.smtp_user, settings.smtp_password)
+            server.send_message(message)
+    except (smtplib.SMTPException, OSError) as exc:
+        logger.warning("SMTP delivery failed, skipping email to %s: %s", to_email, exc)
 
 
 async def send_email(to_email: str, subject: str, html_body: str, text_body: str) -> None:
