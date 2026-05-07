@@ -40,7 +40,7 @@ def main() -> None:
     signal.signal(signal.SIGINT, sig_handler)
     
     # Use idle() to block until shutdown signal is received
-    application.run_polling(close_loop=False)
+    application.run_polling(close_loop=False, allowed_updates=["message", "callback_query"])
 
 
 if __name__ == "__main__":

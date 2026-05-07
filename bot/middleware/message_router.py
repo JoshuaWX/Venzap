@@ -31,9 +31,16 @@ async def route_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         return
 
     if update.callback_query:
-        if await auth_handler.handle_callback(update, context):
-            return
-        await rule_engine.handle_callback(update, context)
+        try:
+            if await auth_handler.handle_callback(update, context):
+                return
+            await rule_engine.handle_callback(update, context)
+        except Exception:
+            logger.exception("Callback handling failed")
+            try:
+                await update.callback_query.answer("Something went wrong. Please try again.", show_alert=True)
+            except Exception:
+                pass
         return
 
     message = update.effective_message
