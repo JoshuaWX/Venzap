@@ -13,6 +13,11 @@ from app.config import settings
 logger = logging.getLogger("venzap.celery")
 
 redis_url = os.getenv("REDIS_URL", "redis://localhost:6379")
+if redis_url.startswith("https://"):
+    # Upstash REST URL provided; convert to TLS Redis scheme for Celery.
+    redis_url = "rediss://" + redis_url[len("https://"):]
+elif redis_url.startswith("http://"):
+    redis_url = "redis://" + redis_url[len("http://"):]
 
 
 def _uses_placeholder_redis(url: str) -> bool:
