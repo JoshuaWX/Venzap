@@ -16,7 +16,6 @@ SIGNUP_FULL_NAME = "AUTH_SIGNUP_FULL_NAME"
 SIGNUP_EMAIL = "AUTH_SIGNUP_EMAIL"
 SIGNUP_PHONE = "AUTH_SIGNUP_PHONE"
 SIGNUP_PASSWORD = "AUTH_SIGNUP_PASSWORD"
-SIGNUP_OTP = "AUTH_SIGNUP_OTP"
 LOGIN_EMAIL = "AUTH_LOGIN_EMAIL"
 LOGIN_PASSWORD = "AUTH_LOGIN_PASSWORD"
 
@@ -146,39 +145,22 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> boo
             await message.reply_text("I could not create your account. Please try again.", reply_markup=build_auth_keyboard())
             return True
 
-        await redis_state.set_registration_field(user.id, "password", password)
-        await redis_state.set_state(user.id, SIGNUP_OTP)
-        await message.reply_text(
-            "Account created. Check your email for the OTP, then send it here.",
-            reply_markup=build_auth_keyboard(),
-        )
-        return True
-
-    if state == SIGNUP_OTP:
-        otp = message.text.strip()
-        email = await redis_state.get_registration_field(user.id, "email") or ""
-        password = await redis_state.get_registration_field(user.id, "password") or ""
-        if not email or not password:
-            await cancel_auth(update, context)
+        login_result, cookie_header = await api_client.login_user(email=email, password=password)
+        if not login_result:
+            await message.reply_text("Account created, but login failed. Please sign in to continue.", reply_markup=build_auth_keyboard())
             return True
 
-        verify_result = await api_client.verify_user_email(email=email, otp=otp, account_type="user")
-        if not verify_result:
-            await message.reply_text("That OTP did not work. Please try again.", reply_markup=build_auth_keyboard())
-            return True
-
-        _login_result, cookie_header = await api_client.login_user(email=email, password=password)
         if cookie_header:
             await redis_state.set_auth_cookies(user.id, cookie_header)
 
         await redis_state.clear_state(user.id)
         await redis_state.clear_registration(user.id)
 
-        account = verify_result.get("virtual_account") if isinstance(verify_result, dict) else None
+        account = await api_client.get_user_bank_account(cookies=cookie_header or "") if cookie_header else None
         if account:
             details = formatters.format_account_details(account)
         else:
-            details = "Your account is ready. You can now browse vendors and fund your wallet."
+            details = "Account created. Your virtual account is provisioning in the background. You can browse vendors now."
 
         await message.reply_text(details, reply_markup=build_main_menu())
         return True
