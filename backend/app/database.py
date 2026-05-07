@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 from collections.abc import AsyncGenerator
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 from sqlalchemy.ext.asyncio import (
     AsyncAttrs,
@@ -18,14 +19,20 @@ DATABASE_URL = os.getenv(
 )
 
 
-# asyncpg doesn't accept sslmode as a URL query parameter
-# Strip it if present and use connect_args instead
+# asyncpg doesn't accept sslmode as a URL query parameter.
+# Supabase may include sslmode in the query string in different positions.
+# Parse and remove sslmode robustly, then rely on connect_args for SSL.
 db_url = DATABASE_URL
-if "?sslmode=" in db_url:
-    db_url = db_url.split("?")[0]
+
+split = urlsplit(db_url)
+query_params = parse_qsl(split.query, keep_blank_values=True)
+query_params = [(k, v) for (k, v) in query_params if k.lower() != "sslmode"]
+
+clean_query = urlencode(query_params, doseq=True)
+db_url = urlunsplit((split.scheme, split.netloc, split.path, clean_query, split.fragment))
 
 # Use SSL for Supabase (remote connections require SSL)
-connect_args = {}
+connect_args: dict = {}
 if "supabase" in DATABASE_URL:
     connect_args["ssl"] = True
 
