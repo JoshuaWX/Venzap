@@ -8,6 +8,9 @@ services:
     healthCheckPath: /health
     autoDeploy: true
     plan: starter
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
 
   - type: worker
     name: venzap-celery
@@ -17,6 +20,9 @@ services:
     startCommand: celery -A app.celery_app:celery_app worker --loglevel=INFO
     autoDeploy: true
     plan: starter
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
 
   - type: worker
     name: venzap-bot
@@ -26,3 +32,6 @@ services:
     startCommand: python main.py
     autoDeploy: true
     plan: starter
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
