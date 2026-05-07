@@ -13,12 +13,28 @@ def _env_list(name: str, default: str) -> list[str]:
     return [item.strip() for item in raw.split(",") if item.strip()]
 
 
+def _env_list_any(keys: list[str], default: str) -> list[str]:
+    """Return a list of values from the first-existing comma-separated env key(s).
+
+    This allows using either `FRONTEND_URL` or `NEXT_PUBLIC_FRONTEND_URL` (or both)
+    so deployments that set only the Next.js public var will still be allowed.
+    """
+    parts: list[str] = []
+    for k in keys:
+        raw = os.getenv(k, "")
+        if raw:
+            parts.extend([item.strip() for item in raw.split(",") if item.strip()])
+    if not parts:
+        parts = [item.strip() for item in default.split(",") if item.strip()]
+    return parts
+
+
 @dataclass(frozen=True)
 class Settings:
     app_name: str = "Venzap"
     environment: str = _env("ENVIRONMENT", "development")
     frontend_urls: list[str] = field(
-        default_factory=lambda: _env_list("FRONTEND_URL", "http://localhost:3000")
+        default_factory=lambda: _env_list_any(["FRONTEND_URL", "NEXT_PUBLIC_FRONTEND_URL"], "http://localhost:3000")
     )
 
     secret_key: str = _env("SECRET_KEY", "")
