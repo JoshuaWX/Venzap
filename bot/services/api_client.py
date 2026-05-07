@@ -158,3 +158,8 @@ async def get_awaiting_otp_register(*, email: str, password: str, full_name: str
     body = {"email": email, "password": password, "full_name": full_name, "phone": phone}
     return await _post_and_capture_cookies("/api/v1/auth/user/register", body)
 
+
+async def verify_user_email(*, email: str, otp: str, account_type: str = "user") -> dict[str, Any] | None:
+    payload = {"email": email, "otp": otp, "account_type": account_type}
+    return await _post("/api/v1/auth/verify-email", payload)
+

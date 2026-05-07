@@ -6,6 +6,7 @@ import logging
 from telegram import Update
 from telegram.ext import ContextTypes
 
+from bot.handlers import auth as auth_handler
 from bot.handlers import rule_engine
 from bot.keyboards.order_keyboard import build_main_menu
 from bot.services.ai_client import parse_intent
@@ -30,11 +31,16 @@ async def route_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         return
 
     if update.callback_query:
+        if await auth_handler.handle_callback(update, context):
+            return
         await rule_engine.handle_callback(update, context)
         return
 
     message = update.effective_message
     if not message or not message.text:
+        return
+
+    if await auth_handler.handle_text(update, context):
         return
 
     current_state = await redis_state.get_state(user.id)

@@ -3,7 +3,7 @@ from __future__ import annotations
 from telegram import Update
 from telegram.ext import ContextTypes
 
-from bot.keyboards.order_keyboard import build_main_menu
+from bot.keyboards.auth_keyboard import build_start_keyboard
 
 
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -13,6 +13,6 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 
     text = (
         "Welcome to Venzap.\n"
-        "Order from local vendors right here on Telegram."
+        "Sign up or sign in to browse vendors, fund your wallet, and place orders."
     )
-    await message.reply_text(text, reply_markup=build_main_menu())
+    await message.reply_text(text, reply_markup=build_start_keyboard())

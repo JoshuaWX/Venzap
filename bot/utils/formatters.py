@@ -77,3 +77,16 @@ def format_order_status(order: dict[str, Any]) -> str:
     if total_text:
         lines.append(f"Total: {total_text}")
     return "\n".join(lines)
+
+
+def format_account_details(account: dict[str, Any]) -> str:
+    bank_name = account.get("bank_name") or "Bank"
+    account_number = account.get("account_number") or ""
+    account_name = account.get("account_name") or ""
+    lines = [
+        "Your Venzap wallet account is ready:",
+        f"Bank: {bank_name}",
+        f"Account: {account_number}",
+        f"Name: {account_name}",
+    ]
+    return "\n".join(lines)
