@@ -90,6 +90,45 @@ curl http://localhost:8000/health
 docker logs venzap-celery | grep "ready"
 ```
 
+### SMTP Setup
+
+Venzap sends OTP and support emails through SMTP when these variables are set:
+
+```bash
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your-email@gmail.com
+SMTP_PASSWORD=your-gmail-app-password
+SUPPORT_EMAIL=support@venzap.ng
+```
+
+Use a provider-specific app password for Gmail or the equivalent SMTP credentials from Mailgun, Resend SMTP, SendGrid SMTP, or your mail host. In development, the app will log and skip email delivery if these values are missing.
+
+### Telegram Setup
+
+The bot is a separate long-running service. To get it working locally or on Railway, set:
+
+```bash
+TELEGRAM_BOT_TOKEN=your-telegram-bot-token
+BACKEND_API_BASE_URL=http://localhost:8000
+REDIS_URL=redis://localhost:6379
+```
+
+Then run the bot container or process on its own. It uses polling by default, so no webhook setup is required for the hackathon demo.
+
+### Production Split
+
+Recommended hosting layout:
+
+```text
+Vercel   -> frontend/
+Railway  -> backend API + Celery worker + Telegram bot
+Supabase -> PostgreSQL database
+Redis    -> Railway Redis or Upstash Redis
+```
+
+For the frontend, set `NEXT_PUBLIC_API_BASE_URL` to the Railway API URL. For the backend, set `DATABASE_URL` to the Supabase connection string, `REDIS_URL` to your hosted Redis URL, and `FRONTEND_URL` to the Vercel domain.
+
 ### 3. Run Database Migrations
 
 Database migrations run automatically on API startup. To verify:
@@ -185,7 +224,7 @@ docker logs venzap-api 2>&1 | grep "DEV OTP for" | tail -1
 # First, set up the OTP in Redis
 EMAIL="demo_...@example.com"
 OTP="123456"
-SECRET_KEY="b9c4f0f8e3a145c6b6a3dd3ab13a7d9cf7a1b0d2e63b4a58e2f90c9f1a7b2c4d"
+SECRET_KEY="${SECRET_KEY:?Set SECRET_KEY before running the demo}"
 HASHED=$(echo -n "$OTP" | openssl dgst -sha256 -hmac "$SECRET_KEY" -hex | cut -d' ' -f2)
 docker exec venzap-redis redis-cli SETEX "otp:email_verification_user:$EMAIL" 600 "$HASHED"
 
@@ -486,6 +525,9 @@ GET "dva:user:1234567890"
 #### Redis
 - `REDIS_URL`: Redis connection string (default: `redis://redis:6379`)
 
+#### Frontend
+- `NEXT_PUBLIC_API_BASE_URL`: Public API base URL used by the Vercel frontend
+
 #### Payaza Integration
 - `PAYAZA_SECRET_KEY`: API secret key (test: `PZ78-SKTEST-...`)
 - `PAYAZA_BASE_URL`: API base URL (default: `https://api.payaza.africa`)
@@ -503,6 +545,10 @@ GET "dva:user:1234567890"
 - `SMTP_PORT`: SMTP port
 - `SMTP_USER`: SMTP username
 - `SMTP_PASSWORD`: SMTP password
+
+#### Telegram
+- `TELEGRAM_BOT_TOKEN`: Bot token from BotFather
+- `BACKEND_API_BASE_URL`: Backend URL used by the bot service
 
 #### Environment
 - `ENVIRONMENT`: `development` or `production` (affects logging, email behavior)
@@ -614,18 +660,16 @@ docker exec venzap-api alembic downgrade -1
 
 ## Production Deployment Checklist
 
-- [ ] Update `ENVIRONMENT=production` in `.env`
-- [ ] Enable SMTP email configuration
-- [ ] Update `SECRET_KEY`, `PAYAZA_SECRET_KEY` to production values
-- [ ] Configure CORS `FRONTEND_URL` for production domain
-- [ ] Enable HTTPS/TLS in Nginx
-- [ ] Set up database backups
-- [ ] Configure logging to centralized service
-- [ ] Enable Celery result backend persistence
-- [ ] Set up monitoring/alerting for services
-- [ ] Review security headers and adjust CSP as needed
-- [ ] Test full workflow end-to-end
-- [ ] Load testing and performance tuning
+- [ ] Deploy `frontend/` to Vercel
+- [ ] Set `NEXT_PUBLIC_API_BASE_URL` to the Railway API URL in Vercel
+- [ ] Deploy the API, Celery worker, and Telegram bot to Railway
+- [ ] Point `DATABASE_URL` at Supabase Postgres
+- [ ] Point `REDIS_URL` at Railway Redis or Upstash Redis
+- [ ] Configure SMTP credentials in Railway
+- [ ] Update `SECRET_KEY`, `PAYAZA_SECRET_KEY`, and `TELEGRAM_BOT_TOKEN` with production values
+- [ ] Configure `FRONTEND_URL` for the Vercel domain
+- [ ] Verify CORS, cookies, and webhook delivery across domains
+- [ ] Test the full registration, OTP, DVA, wallet, and order flow end to end
 
 ## Support & Debugging
 

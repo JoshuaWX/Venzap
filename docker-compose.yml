@@ -5,6 +5,11 @@ x-common-env: &common-env
   REDIS_URL: ${REDIS_URL:-redis://redis:6379}
   ENVIRONMENT: ${ENVIRONMENT:-development}
   FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
+  SMTP_HOST: ${SMTP_HOST:-}
+  SMTP_PORT: ${SMTP_PORT:-587}
+  SMTP_USER: ${SMTP_USER:-}
+  SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+  SUPPORT_EMAIL: ${SUPPORT_EMAIL:-support@venzap.ng}
   PAYAZA_BASE_URL: ${PAYAZA_BASE_URL:-https://api.payaza.africa}
   PAYAZA_SECRET_KEY: ${PAYAZA_SECRET_KEY:-change-me}
   SECRET_KEY: ${SECRET_KEY:-change-me-min-32-characters}

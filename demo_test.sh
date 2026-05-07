@@ -11,7 +11,7 @@
 set -e
 
 API_URL="http://localhost:8000"
-SECRET_KEY="b9c4f0f8e3a145c6b6a3dd3ab13a7d9cf7a1b0d2e63b4a58e2f90c9f1a7b2c4d"
+SECRET_KEY="${SECRET_KEY:?Set SECRET_KEY before running demo_test.sh}"
 
 # Colors for output
 GREEN='\033[0;32m'
