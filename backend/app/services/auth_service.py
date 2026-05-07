@@ -24,7 +24,6 @@ from app.utils.security import (
     hash_password,
     verify_password,
 )
-from app.services.virtual_account_service import queue_virtual_account_provisioning
 
 
 @dataclass(frozen=True)
@@ -150,6 +149,8 @@ async def register_vendor(session: AsyncSession, payload) -> Vendor:
     # (VirtualAccount references User, not Vendor)
     try:
         user = await get_or_create_user_from_vendor(session, vendor)
+        # Import here to avoid circular dependency during module load
+        from app.services.virtual_account_service import queue_virtual_account_provisioning
         queue_virtual_account_provisioning(str(user.id))
     except Exception:
         logger = logging.getLogger(__name__)
@@ -185,6 +186,8 @@ async def register_user(session: AsyncSession, payload) -> User:
     
     # Queue Payaza DVA provisioning for user (non-blocking)
     try:
+        # Import here to avoid circular dependency during module load
+        from app.services.virtual_account_service import queue_virtual_account_provisioning
         queue_virtual_account_provisioning(str(user.id))
     except Exception:
         logger = logging.getLogger(__name__)
