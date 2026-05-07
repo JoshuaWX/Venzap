@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import re
 
 from telegram import Update
@@ -19,9 +20,21 @@ SIGNUP_PASSWORD = "AUTH_SIGNUP_PASSWORD"
 LOGIN_EMAIL = "AUTH_LOGIN_EMAIL"
 LOGIN_PASSWORD = "AUTH_LOGIN_PASSWORD"
 
+logger = logging.getLogger("venzap.bot.auth")
+
 
 def _is_email(value: str) -> bool:
     return bool(re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", value.strip()))
+
+
+def _mask_email(value: str) -> str:
+    value = value.strip()
+    if "@" not in value:
+        return (value[:1] + "***") if value else "***"
+    name, domain = value.split("@", 1)
+    if not name:
+        return f"***@{domain}"
+    return f"{name[0]}***@{domain}"
 
 
 def _is_nigerian_phone(value: str) -> bool:
@@ -34,6 +47,7 @@ async def start_signup(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     if not message or not user:
         return
 
+    logger.info("Signup started telegram_id=%s", user.id)
     await redis_state.clear_registration(user.id)
     await redis_state.clear_auth_cookies(user.id)
     await redis_state.set_state(user.id, SIGNUP_FULL_NAME)
@@ -46,6 +60,7 @@ async def start_login(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     if not message or not user:
         return
 
+    logger.info("Login started telegram_id=%s", user.id)
     await redis_state.clear_registration(user.id)
     await redis_state.set_state(user.id, LOGIN_EMAIL)
     await message.reply_text("Enter your email address.", reply_markup=build_auth_keyboard())
@@ -57,6 +72,7 @@ async def cancel_auth(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     if not message or not user:
         return
 
+    logger.info("Auth canceled telegram_id=%s", user.id)
     await redis_state.clear_state(user.id)
     await redis_state.clear_registration(user.id)
     await message.reply_text("Okay. You can sign up or sign in anytime.", reply_markup=build_start_keyboard())
@@ -73,6 +89,7 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 
     await query.answer()
     action = data.split(":", 1)[1]
+    logger.info("Auth callback telegram_id=%s action=%s", query.from_user.id if query.from_user else "", action)
     if action == "signup":
         await start_signup(update, context)
         return True
@@ -97,6 +114,7 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> boo
         if len(full_name) < 3:
             await message.reply_text("Please enter your full name.", reply_markup=build_auth_keyboard())
             return True
+        logger.info("Signup name captured telegram_id=%s", user.id)
         await redis_state.set_registration_field(user.id, "full_name", full_name)
         await redis_state.set_state(user.id, SIGNUP_EMAIL)
         await message.reply_text("Enter your email address.", reply_markup=build_auth_keyboard())
@@ -107,6 +125,7 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> boo
         if not _is_email(email):
             await message.reply_text("Enter a valid email address.", reply_markup=build_auth_keyboard())
             return True
+        logger.info("Signup email captured telegram_id=%s email=%s", user.id, _mask_email(email))
         await redis_state.set_registration_field(user.id, "email", email)
         await redis_state.set_state(user.id, SIGNUP_PHONE)
         await message.reply_text("Enter your Nigerian phone number.", reply_markup=build_auth_keyboard())
@@ -117,6 +136,7 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> boo
         if not _is_nigerian_phone(phone):
             await message.reply_text("Enter a valid Nigerian phone number.", reply_markup=build_auth_keyboard())
             return True
+        logger.info("Signup phone captured telegram_id=%s", user.id)
         await redis_state.set_registration_field(user.id, "phone", phone)
         await redis_state.set_state(user.id, SIGNUP_PASSWORD)
         await message.reply_text("Create a password with at least 8 characters.", reply_markup=build_auth_keyboard())
@@ -135,6 +155,7 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> boo
             await cancel_auth(update, context)
             return True
 
+        logger.info("Signup submit telegram_id=%s email=%s", user.id, _mask_email(email))
         result, _cookies = await api_client.get_awaiting_otp_register(
             email=email,
             password=password,
@@ -142,13 +163,19 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> boo
             phone=phone,
         )
         if not result:
+            logger.warning("Signup failed telegram_id=%s email=%s", user.id, _mask_email(email))
             await message.reply_text("I could not create your account. Please try again.", reply_markup=build_auth_keyboard())
             return True
 
+        logger.info("Signup created telegram_id=%s email=%s", user.id, _mask_email(email))
+
         login_result, cookie_header = await api_client.login_user(email=email, password=password)
         if not login_result:
+            logger.warning("Signup login failed telegram_id=%s email=%s", user.id, _mask_email(email))
             await message.reply_text("Account created, but login failed. Please sign in to continue.", reply_markup=build_auth_keyboard())
             return True
+
+        logger.info("Signup login success telegram_id=%s email=%s", user.id, _mask_email(email))
 
         if cookie_header:
             await redis_state.set_auth_cookies(user.id, cookie_header)
@@ -170,6 +197,7 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> boo
         if not _is_email(email):
             await message.reply_text("Enter a valid email address.", reply_markup=build_auth_keyboard())
             return True
+        logger.info("Login email captured telegram_id=%s email=%s", user.id, _mask_email(email))
         await redis_state.set_registration_field(user.id, "email", email)
         await redis_state.set_state(user.id, LOGIN_PASSWORD)
         await message.reply_text("Enter your password.", reply_markup=build_auth_keyboard())
@@ -182,10 +210,14 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> boo
             await cancel_auth(update, context)
             return True
 
+        logger.info("Login submit telegram_id=%s email=%s", user.id, _mask_email(email))
         login_result, cookie_header = await api_client.login_user(email=email, password=password)
         if not login_result:
+            logger.warning("Login failed telegram_id=%s email=%s", user.id, _mask_email(email))
             await message.reply_text("Login failed. Check your credentials and try again.", reply_markup=build_auth_keyboard())
             return True
+
+        logger.info("Login success telegram_id=%s email=%s", user.id, _mask_email(email))
 
         if cookie_header:
             await redis_state.set_auth_cookies(user.id, cookie_header)

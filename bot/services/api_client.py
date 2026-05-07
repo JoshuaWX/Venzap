@@ -2,9 +2,14 @@ from __future__ import annotations
 
 from typing import Any
 
+import logging
+
 import httpx
 
 from bot.config import settings
+
+
+logger = logging.getLogger("venzap.bot.api")
 
 
 def _normalize_list(payload: Any) -> list[dict[str, Any]]:
@@ -19,6 +24,7 @@ def _normalize_list(payload: Any) -> list[dict[str, Any]]:
 
 async def _get(path: str, *, cookies: str | None = None) -> Any | None:
     if not settings.backend_base_url:
+        logger.error("Backend base URL is not configured")
         return None
 
     timeout = httpx.Timeout(settings.request_timeout_seconds)
@@ -30,18 +36,22 @@ async def _get(path: str, *, cookies: str | None = None) -> Any | None:
         async with httpx.AsyncClient(timeout=timeout) as client:
             response = await client.get(f"{settings.backend_base_url}{path}", headers=headers)
     except httpx.HTTPError:
+        logger.exception("GET request failed path=%s", path)
         return None
 
     if response.status_code != 200:
+        logger.warning("GET non-200 path=%s status=%s", path, response.status_code)
         return None
     try:
         return response.json()
     except Exception:  # noqa: BLE001
+        logger.warning("GET invalid JSON path=%s status=%s", path, response.status_code)
         return None
 
 
 async def _post(path: str, payload: dict[str, Any], *, cookies: str | None = None) -> Any | None:
     if not settings.backend_base_url:
+        logger.error("Backend base URL is not configured")
         return None
 
     timeout = httpx.Timeout(settings.request_timeout_seconds)
@@ -57,19 +67,23 @@ async def _post(path: str, payload: dict[str, Any], *, cookies: str | None = Non
                 headers=headers,
             )
     except httpx.HTTPError:
+        logger.exception("POST request failed path=%s", path)
         return None
 
     if response.status_code not in {200, 201}:
+        logger.warning("POST non-200 path=%s status=%s", path, response.status_code)
         return None
 
     try:
         return response.json()
     except Exception:  # noqa: BLE001
+        logger.warning("POST invalid JSON path=%s status=%s", path, response.status_code)
         return None
 
 
 async def _post_and_capture_cookies(path: str, payload: dict[str, Any]) -> tuple[Any | None, str | None]:
     if not settings.backend_base_url:
+        logger.error("Backend base URL is not configured")
         return None, None
 
     timeout = httpx.Timeout(settings.request_timeout_seconds)
@@ -77,9 +91,11 @@ async def _post_and_capture_cookies(path: str, payload: dict[str, Any]) -> tuple
         async with httpx.AsyncClient(timeout=timeout) as client:
             response = await client.post(f"{settings.backend_base_url}{path}", json=payload)
     except httpx.HTTPError:
+        logger.exception("POST request failed path=%s", path)
         return None, None
 
     if response.status_code not in {200, 201}:
+        logger.warning("POST non-200 path=%s status=%s", path, response.status_code)
         return None, None
 
     set_cookies = response.headers.get_list("set-cookie")
@@ -102,6 +118,7 @@ async def _post_and_capture_cookies(path: str, payload: dict[str, Any]) -> tuple
     try:
         return response.json(), cookie_header
     except Exception:  # noqa: BLE001
+        logger.warning("POST invalid JSON path=%s status=%s", path, response.status_code)
         return None, cookie_header
 
 
