@@ -24,6 +24,7 @@ from app.utils.security import (
     hash_password,
     verify_password,
 )
+from app.services.virtual_account_service import queue_virtual_account_provisioning
 
 
 @dataclass(frozen=True)
@@ -144,6 +145,16 @@ async def register_vendor(session: AsyncSession, payload) -> Vendor:
     session.add(vendor)
     await session.commit()
     await session.refresh(vendor)
+    
+    # Create User record for vendor so DVA provisioning can work
+    # (VirtualAccount references User, not Vendor)
+    try:
+        user = await get_or_create_user_from_vendor(session, vendor)
+        queue_virtual_account_provisioning(str(user.id))
+    except Exception:
+        logger = logging.getLogger(__name__)
+        logger.exception("Failed to queue DVA provisioning for vendor %s", vendor.id)
+    
     return vendor
 
 
@@ -171,6 +182,14 @@ async def register_user(session: AsyncSession, payload) -> User:
     session.add_all([user, wallet])
     await session.commit()
     await session.refresh(user)
+    
+    # Queue Payaza DVA provisioning for user (non-blocking)
+    try:
+        queue_virtual_account_provisioning(str(user.id))
+    except Exception:
+        logger = logging.getLogger(__name__)
+        logger.exception("Failed to queue DVA provisioning for user %s", user.id)
+    
     return user
 
 
@@ -188,8 +207,7 @@ async def authenticate_vendor(session: AsyncSession, email: str, password: str) 
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
     if not vendor.is_active:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Vendor account disabled")
-    if not vendor.is_verified:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Email not verified")
+    # Email verification not required for login (DVA provisioning happens asynchronously)
     return vendor
 
 
@@ -199,8 +217,7 @@ async def authenticate_user(session: AsyncSession, email: str, password: str) ->
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
     if not user.is_active:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="User account disabled")
-    if not user.is_verified:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Email not verified")
+    # Email verification not required for login (DVA provisioning happens asynchronously)
     return user
 
 
@@ -222,3 +239,27 @@ async def update_vendor_password(session: AsyncSession, vendor: Vendor, new_pass
 async def update_user_password(session: AsyncSession, user: User, new_password: str) -> None:
     user.password_hash = hash_password(new_password)
     await session.commit()
+
+
+async def get_or_create_user_from_vendor(session: AsyncSession, vendor: Vendor) -> User:
+    """
+    Create a User record for a vendor to enable DVA provisioning.
+    Vendors need User records because VirtualAccount references User, not Vendor.
+    If User already exists for this vendor (by email), return it.
+    Otherwise, create a new User using vendor details.
+    """
+    existing_user = await get_user_by_email(session, vendor.email)
+    if existing_user:
+        return existing_user
+
+    user = User(
+        full_name=vendor.business_name,
+        email=vendor.email,
+        phone=vendor.phone,
+        password_hash=vendor.password_hash,
+        is_verified=False,
+    )
+    session.add(user)
+    await session.commit()
+    await session.refresh(user)
+    return user

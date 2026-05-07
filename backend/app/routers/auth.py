@@ -52,8 +52,7 @@ async def register_vendor(
 	db: AsyncSession = Depends(get_db),
 ) -> AuthMessageResponse:
 	vendor = await auth_service.register_vendor(db, payload)
-	await auth_service.send_otp(vendor.email, "email_verification_vendor")
-	return AuthMessageResponse(message="Vendor account created. Verify your email.", account_id=str(vendor.id))
+	return AuthMessageResponse(message="Vendor account created. Virtual account provisioning in progress.", account_id=str(vendor.id))
 
 
 @router.post("/user/register", response_model=AuthMessageResponse, status_code=status.HTTP_201_CREATED)
@@ -64,8 +63,7 @@ async def register_user(
 	db: AsyncSession = Depends(get_db),
 ) -> AuthMessageResponse:
 	user = await auth_service.register_user(db, payload)
-	await auth_service.send_otp(user.email, "email_verification_user")
-	return AuthMessageResponse(message="User account created. Verify your email.", account_id=str(user.id))
+	return AuthMessageResponse(message="User account created. Virtual account provisioning in progress.", account_id=str(user.id))
 
 
 @router.post("/vendor/login", response_model=AuthMessageResponse)
