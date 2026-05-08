@@ -47,7 +47,13 @@ class _RedisProxy:
         if self._backend is not None:
             return self._backend
 
-        client = redis.from_url(settings.redis_url, decode_responses=True)
+        redis_url = settings.redis_url
+        if redis_url.startswith("https://"):
+            redis_url = "rediss://" + redis_url[len("https://"):]
+        elif redis_url.startswith("http://"):
+            redis_url = "redis://" + redis_url[len("http://"):]
+
+        client = redis.from_url(redis_url, decode_responses=True)
         try:
             hostname = client.connection_pool.connection_kwargs.get("host")
             if hostname:

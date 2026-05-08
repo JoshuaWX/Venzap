@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 import os
 import socket
-from urllib.parse import urlparse
+from urllib.parse import parse_qsl, urlencode, urlparse, urlsplit, urlunsplit
 
 from celery import Celery
 
@@ -18,6 +18,13 @@ if redis_url.startswith("https://"):
     redis_url = "rediss://" + redis_url[len("https://"):]
 elif redis_url.startswith("http://"):
     redis_url = "redis://" + redis_url[len("http://"):]
+
+if redis_url.startswith("rediss://"):
+    split = urlsplit(redis_url)
+    params = dict(parse_qsl(split.query, keep_blank_values=True))
+    if "ssl_cert_reqs" not in params:
+        params["ssl_cert_reqs"] = "CERT_NONE"
+        redis_url = urlunsplit((split.scheme, split.netloc, split.path, urlencode(params), split.fragment))
 
 logger.info("Celery redis_url=%s", redis_url.split("@")[-1] if "@" in redis_url else redis_url)
 
@@ -56,10 +63,10 @@ if use_memory_fallback and settings.environment.lower() == "production":
 else:
     logger.info("Celery redis resolved host=%s", urlparse(redis_url).hostname)
 
-logger.info("Celery broker=%s backend=%s", broker_url, result_backend)
-
 broker_url = "memory://" if use_memory_fallback else redis_url
 result_backend = "cache+memory://" if use_memory_fallback else redis_url
+
+logger.info("Celery broker=%s backend=%s", broker_url, result_backend)
 
 celery_app = Celery("venzap", broker=broker_url, backend=result_backend)
 celery_app.conf.update(
