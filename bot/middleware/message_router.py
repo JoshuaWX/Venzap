@@ -30,6 +30,8 @@ async def route_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     if not user:
         return
 
+    logger.info("Incoming update telegram_id=%s has_callback=%s", user.id, bool(update.callback_query))
+
     if update.callback_query:
         try:
             if await auth_handler.handle_callback(update, context):

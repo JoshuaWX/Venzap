@@ -27,6 +27,10 @@ def _is_email(value: str) -> bool:
     return bool(re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", value.strip()))
 
 
+def _is_nigerian_phone(value: str) -> bool:
+    return bool(re.match(r"^(?:0|\+234)(?:70|80|81|90|91)\d{8}$", value.strip()))
+
+
 def _mask_email(value: str) -> str:
     value = value.strip()
     if "@" not in value:
@@ -35,10 +39,6 @@ def _mask_email(value: str) -> str:
     if not name:
         return f"***@{domain}"
     return f"{name[0]}***@{domain}"
-
-
-def _is_nigerian_phone(value: str) -> bool:
-    return bool(re.match(r"^(?:0|\+234)(?:70|80|81|90|91)\d{8}$", value.strip()))
 
 
 async def start_signup(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -108,7 +108,8 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> boo
     if not message or not user:
         return False
 
-    state = await redis_state.get_state(user.id)
+        state = await redis_state.get_state(user.id)
+        logger.info("Auth state telegram_id=%s state=%s", user.id, state)
     if state == SIGNUP_FULL_NAME:
         full_name = message.text.strip()
         if len(full_name) < 3:

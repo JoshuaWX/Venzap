@@ -19,6 +19,8 @@ if redis_url.startswith("https://"):
 elif redis_url.startswith("http://"):
     redis_url = "redis://" + redis_url[len("http://"):]
 
+logger.info("Celery redis_url=%s", redis_url.split("@")[-1] if "@" in redis_url else redis_url)
+
 
 def _uses_placeholder_redis(url: str) -> bool:
     try:
@@ -51,6 +53,10 @@ if use_memory_fallback and settings.environment.lower() == "production":
         f"Redis not available in production! Using memory backend (NOT FOR PRODUCTION). "
         f"REDIS_URL: {redis_url}. Please set up a Redis service."
     )
+else:
+    logger.info("Celery redis resolved host=%s", urlparse(redis_url).hostname)
+
+logger.info("Celery broker=%s backend=%s", broker_url, result_backend)
 
 broker_url = "memory://" if use_memory_fallback else redis_url
 result_backend = "cache+memory://" if use_memory_fallback else redis_url

@@ -7,8 +7,12 @@ import hashlib
 import hmac
 
 import httpx
+import logging
 
 from app.config import settings
+
+
+logger = logging.getLogger("venzap.payaza")
 
 
 @dataclass(frozen=True)
@@ -86,16 +90,19 @@ async def create_virtual_account(
         "email": email,
         "reference": reference,
     }
+    logger.info("Payaza DVA url=%s", url)
     headers = {
         "Authorization": f"Payaza {_encoded_api_key(settings.payaza_secret_key)}",
         "Content-Type": "application/json",
     }
 
     timeout = httpx.Timeout(settings.payaza_timeout_seconds)
+    logger.info("Payaza DVA request email=%s", email)
     async with httpx.AsyncClient(timeout=timeout) as client:
         response = await client.post(url, json=payload, headers=headers)
 
     if response.status_code >= 400:
+        logger.warning("Payaza DVA failed status=%s", response.status_code)
         raise PayazaError(f"Payaza DVA request failed ({response.status_code}).")
 
     data = _extract_payload(response.json())
@@ -104,6 +111,7 @@ async def create_virtual_account(
     if missing:
         raise PayazaError("Payaza response missing fields: " + ", ".join(missing))
 
+    logger.info("Payaza DVA success reference=%s", data.get("reference"))
     return PayazaVirtualAccount(
         account_number=str(data["account_number"]),
         account_name=str(data["account_name"]),
@@ -129,6 +137,7 @@ async def create_payment_link(
         raise PayazaError("Amount must be positive.")
 
     url = f"{settings.payaza_base_url}{settings.payaza_payment_link_endpoint}"
+    logger.info("Payaza payment link url=%s", url)
     payload = {
         "amount": str(amount),
         "email": email,
@@ -146,13 +155,16 @@ async def create_payment_link(
     }
 
     timeout = httpx.Timeout(settings.payaza_timeout_seconds)
+    logger.info("Payaza payment link request reference=%s", reference)
     async with httpx.AsyncClient(timeout=timeout) as client:
         response = await client.post(url, json=payload, headers=headers)
 
     if response.status_code >= 400:
+        logger.warning("Payaza payment link failed status=%s", response.status_code)
         raise PayazaError(f"Payaza payment link request failed ({response.status_code}).")
 
     data = _extract_payload(response.json())
     payment_url = _extract_payment_url(data)
     ref_value = str(data.get("reference") or reference)
+    logger.info("Payaza payment link success reference=%s", ref_value)
     return PayazaPaymentLink(payment_url=payment_url, reference=ref_value)

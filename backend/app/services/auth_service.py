@@ -25,6 +25,8 @@ from app.utils.security import (
     verify_password,
 )
 
+logger = logging.getLogger("venzap.auth")
+
 
 @dataclass(frozen=True)
 class TokenPair:
@@ -116,16 +118,21 @@ def hmac_compare(a: str, b: str) -> bool:
 async def register_vendor(session: AsyncSession, payload) -> Vendor:
     email = normalize_email(payload.email)
 
+    logger.info("Vendor register start email=%s", email)
+
     existing = await session.scalar(select(Vendor).where(Vendor.email == email))
     if existing:
+        logger.warning("Vendor register conflict email=%s", email)
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email already registered")
 
     existing_phone = await session.scalar(select(Vendor).where(Vendor.phone == payload.phone))
     if existing_phone:
+        logger.warning("Vendor register conflict phone=%s", payload.phone)
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Phone already registered")
 
     existing_name = await session.scalar(select(Vendor).where(Vendor.business_name == payload.business_name))
     if existing_name:
+        logger.warning("Vendor register conflict business_name=%s", payload.business_name)
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Business name already registered")
 
     vendor = Vendor(
@@ -144,6 +151,8 @@ async def register_vendor(session: AsyncSession, payload) -> Vendor:
     session.add(vendor)
     await session.commit()
     await session.refresh(vendor)
+
+    logger.info("Vendor register created vendor_id=%s", vendor.id)
     
     # Create User record for vendor so DVA provisioning can work
     # (VirtualAccount references User, not Vendor)
@@ -153,7 +162,6 @@ async def register_vendor(session: AsyncSession, payload) -> Vendor:
         from app.services.virtual_account_service import queue_virtual_account_provisioning
         queue_virtual_account_provisioning(str(user.id))
     except Exception:
-        logger = logging.getLogger(__name__)
         logger.exception("Failed to queue DVA provisioning for vendor %s", vendor.id)
     
     return vendor
@@ -162,12 +170,16 @@ async def register_vendor(session: AsyncSession, payload) -> Vendor:
 async def register_user(session: AsyncSession, payload) -> User:
     email = normalize_email(payload.email)
 
+    logger.info("User register start email=%s", email)
+
     existing = await session.scalar(select(User).where(User.email == email))
     if existing:
+        logger.warning("User register conflict email=%s", email)
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email already registered")
 
     existing_phone = await session.scalar(select(User).where(User.phone == payload.phone))
     if existing_phone:
+        logger.warning("User register conflict phone=%s", payload.phone)
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Phone already registered")
 
     user = User(
@@ -183,6 +195,8 @@ async def register_user(session: AsyncSession, payload) -> User:
     session.add_all([user, wallet])
     await session.commit()
     await session.refresh(user)
+
+    logger.info("User register created user_id=%s", user.id)
     
     # Queue Payaza DVA provisioning for user (non-blocking)
     try:
@@ -190,7 +204,6 @@ async def register_user(session: AsyncSession, payload) -> User:
         from app.services.virtual_account_service import queue_virtual_account_provisioning
         queue_virtual_account_provisioning(str(user.id))
     except Exception:
-        logger = logging.getLogger(__name__)
         logger.exception("Failed to queue DVA provisioning for user %s", user.id)
     
     return user
@@ -205,22 +218,30 @@ async def get_user_by_email(session: AsyncSession, email: str) -> User | None:
 
 
 async def authenticate_vendor(session: AsyncSession, email: str, password: str) -> Vendor:
+    logger.info("Vendor login attempt email=%s", email)
     vendor = await get_vendor_by_email(session, email)
     if not vendor or not verify_password(password, vendor.password_hash):
+        logger.warning("Vendor login failed email=%s", email)
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
     if not vendor.is_active:
+        logger.warning("Vendor login disabled email=%s", email)
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Vendor account disabled")
     # Email verification not required for login (DVA provisioning happens asynchronously)
+    logger.info("Vendor login success vendor_id=%s", vendor.id)
     return vendor
 
 
 async def authenticate_user(session: AsyncSession, email: str, password: str) -> User:
+    logger.info("User login attempt email=%s", email)
     user = await get_user_by_email(session, email)
     if not user or not user.password_hash or not verify_password(password, user.password_hash):
+        logger.warning("User login failed email=%s", email)
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
     if not user.is_active:
+        logger.warning("User login disabled email=%s", email)
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="User account disabled")
     # Email verification not required for login (DVA provisioning happens asynchronously)
+    logger.info("User login success user_id=%s", user.id)
     return user
 
 
@@ -251,8 +272,10 @@ async def get_or_create_user_from_vendor(session: AsyncSession, vendor: Vendor) 
     If User already exists for this vendor (by email), return it.
     Otherwise, create a new User using vendor details.
     """
+    logger.info("Ensure vendor user email=%s", vendor.email)
     existing_user = await get_user_by_email(session, vendor.email)
     if existing_user:
+        logger.info("Vendor user exists user_id=%s", existing_user.id)
         return existing_user
 
     user = User(
@@ -265,4 +288,5 @@ async def get_or_create_user_from_vendor(session: AsyncSession, vendor: Vendor) 
     session.add(user)
     await session.commit()
     await session.refresh(user)
+    logger.info("Vendor user created user_id=%s", user.id)
     return user

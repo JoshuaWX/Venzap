@@ -30,6 +30,9 @@ class ProvisioningError(RuntimeError):
     pass
 
 
+logger = logging.getLogger("venzap.dva")
+
+
 def _cache_key(account_number: str) -> str:
     return f"dva:user:{account_number}"
 
@@ -69,9 +72,11 @@ async def _get_user_by_account_number(session: AsyncSession, account_number: str
 
 
 async def provision_virtual_account(user: User) -> VirtualAccount:
+    logger.info("DVA provision start user_id=%s", user.id)
     async with AsyncSessionLocal() as session:
         existing = await session.scalar(select(VirtualAccount).where(VirtualAccount.user_id == user.id))
         if existing:
+            logger.info("DVA exists user_id=%s account=%s", user.id, existing.account_number)
             await _cache_account(existing.account_number, str(user.id))
             return existing
 
@@ -88,6 +93,7 @@ async def provision_virtual_account(user: User) -> VirtualAccount:
                 reference=str(user.id),
             )
         except PayazaError as exc:
+            logger.exception("DVA provision failed user_id=%s", user.id)
             raise ProvisioningError(str(exc)) from exc
 
         virtual_account = VirtualAccount(
@@ -102,6 +108,8 @@ async def provision_virtual_account(user: User) -> VirtualAccount:
         session.add(virtual_account)
         await session.commit()
         await session.refresh(virtual_account)
+
+        logger.info("DVA provisioned user_id=%s account=%s", user.id, virtual_account.account_number)
 
         await _cache_account(virtual_account.account_number, str(user.id))
         return virtual_account
@@ -119,6 +127,8 @@ async def handle_dva_credit(payload: dict) -> None:
     account_number = str(payload.get("account_number") or "").strip()
     reference = str(payload.get("reference") or payload.get("id") or "").strip()
     sender = str(payload.get("sender") or "").strip()
+
+    logger.info("DVA credit received account=%s reference=%s", account_number, reference)
 
     if not account_number or not reference:
         raise ProvisioningError("Missing account number or reference")
@@ -160,7 +170,7 @@ async def handle_dva_credit(payload: dict) -> None:
 
 
 def queue_virtual_account_provisioning(user_id: str) -> None:
-    logger = logging.getLogger("venzap.dva")
+    logger.info("DVA queue requested user_id=%s", user_id)
     try:
         provision_virtual_account_task.delay(user_id)
     except Exception:

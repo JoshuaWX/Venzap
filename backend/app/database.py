@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import logging
 from collections.abc import AsyncGenerator
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
@@ -11,6 +12,8 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
 )
 from sqlalchemy.orm import DeclarativeBase
+
+logger = logging.getLogger("venzap.db")
 
 
 DATABASE_URL = os.getenv(
@@ -35,6 +38,11 @@ db_url = urlunsplit((split.scheme, split.netloc, split.path, clean_query, split.
 connect_args: dict = {}
 if "supabase" in DATABASE_URL:
     connect_args["ssl"] = True
+
+try:
+    logger.info("DB connect target=%s ssl=%s", urlsplit(db_url).hostname, bool(connect_args))
+except Exception:
+    logger.info("DB connect target unknown ssl=%s", bool(connect_args))
 
 engine = create_async_engine(
     db_url,

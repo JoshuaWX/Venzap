@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
+import logging
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
@@ -21,6 +22,8 @@ from app.utils.limiter import limiter
 
 
 router = APIRouter(prefix="/api/v1/auth", tags=["auth"])
+
+logger = logging.getLogger("venzap.auth.router")
 
 
 def _set_auth_cookies(response: Response, access_token: str, refresh_token: str) -> None:
@@ -51,7 +54,9 @@ async def register_vendor(
 	payload: VendorRegisterRequest,
 	db: AsyncSession = Depends(get_db),
 ) -> AuthMessageResponse:
+	logger.info("API vendor register request email=%s", payload.email)
 	vendor = await auth_service.register_vendor(db, payload)
+	logger.info("API vendor register success vendor_id=%s", vendor.id)
 	return AuthMessageResponse(message="Vendor account created. Virtual account provisioning in progress.", account_id=str(vendor.id))
 
 
@@ -62,7 +67,9 @@ async def register_user(
 	payload: UserRegisterRequest,
 	db: AsyncSession = Depends(get_db),
 ) -> AuthMessageResponse:
+	logger.info("API user register request email=%s", payload.email)
 	user = await auth_service.register_user(db, payload)
+	logger.info("API user register success user_id=%s", user.id)
 	return AuthMessageResponse(message="User account created. Virtual account provisioning in progress.", account_id=str(user.id))
 
 
@@ -74,9 +81,11 @@ async def login_vendor(
 	payload: LoginRequest,
 	db: AsyncSession = Depends(get_db),
 ) -> AuthMessageResponse:
+	logger.info("API vendor login request email=%s", payload.email)
 	vendor = await auth_service.authenticate_vendor(db, payload.email, payload.password)
 	tokens = await auth_service.issue_token_pair(subject=str(vendor.id), role="vendor")
 	_set_auth_cookies(response, tokens.access_token, tokens.refresh_token)
+	logger.info("API vendor login success vendor_id=%s", vendor.id)
 	return AuthMessageResponse(message="Login successful", account_id=str(vendor.id))
 
 
@@ -88,9 +97,11 @@ async def login_user(
 	payload: LoginRequest,
 	db: AsyncSession = Depends(get_db),
 ) -> AuthMessageResponse:
+	logger.info("API user login request email=%s", payload.email)
 	user = await auth_service.authenticate_user(db, payload.email, payload.password)
 	tokens = await auth_service.issue_token_pair(subject=str(user.id), role="user")
 	_set_auth_cookies(response, tokens.access_token, tokens.refresh_token)
+	logger.info("API user login success user_id=%s", user.id)
 	return AuthMessageResponse(message="Login successful", account_id=str(user.id))
 
 
@@ -101,8 +112,10 @@ async def refresh_tokens(request: Request, response: Response) -> AuthMessageRes
 	if not refresh_token:
 		raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Missing refresh token")
 
+	logger.info("API token refresh requested")
 	tokens = await auth_service.rotate_refresh_token(refresh_token)
 	_set_auth_cookies(response, tokens.access_token, tokens.refresh_token)
+	logger.info("API token refresh success")
 	return AuthMessageResponse(message="Token refreshed")
 
 
