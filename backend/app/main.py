@@ -44,6 +44,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+logger.info("CORS allow_origins=%s", settings.frontend_urls)
+
 
 @app.middleware("http")
 async def add_security_headers(request: Request, call_next):

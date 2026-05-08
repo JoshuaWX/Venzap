@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import logging
+import socket
 from collections.abc import AsyncGenerator
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
@@ -39,8 +40,23 @@ connect_args: dict = {}
 if "supabase" in DATABASE_URL:
     connect_args["ssl"] = True
 
+resolved_host = None
+if "supabase" in DATABASE_URL:
+    try:
+        host = urlsplit(db_url).hostname
+        if host:
+            resolved_host = socket.gethostbyname(host)
+            connect_args["host"] = resolved_host
+    except Exception:
+        logger.warning("DB host resolution failed")
+
 try:
-    logger.info("DB connect target=%s ssl=%s", urlsplit(db_url).hostname, bool(connect_args))
+    logger.info(
+        "DB connect target=%s ipv4=%s ssl=%s",
+        urlsplit(db_url).hostname,
+        resolved_host or "auto",
+        bool(connect_args),
+    )
 except Exception:
     logger.info("DB connect target unknown ssl=%s", bool(connect_args))
 

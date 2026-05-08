@@ -108,8 +108,8 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> boo
     if not message or not user:
         return False
 
-        state = await redis_state.get_state(user.id)
-        logger.info("Auth state telegram_id=%s state=%s", user.id, state)
+    state = await redis_state.get_state(user.id)
+    logger.info("Auth state telegram_id=%s state=%s", user.id, state)
     if state == SIGNUP_FULL_NAME:
         full_name = message.text.strip()
         if len(full_name) < 3:

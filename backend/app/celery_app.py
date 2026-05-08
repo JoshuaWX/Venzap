@@ -65,7 +65,6 @@ else:
 
 broker_url = "memory://" if use_memory_fallback else redis_url
 result_backend = "cache+memory://" if use_memory_fallback else redis_url
-
 logger.info("Celery broker=%s backend=%s", broker_url, result_backend)
 
 celery_app = Celery("venzap", broker=broker_url, backend=result_backend)

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import time
 import socket
 from typing import Any, Optional
@@ -8,6 +9,9 @@ from typing import Any, Optional
 import redis.asyncio as redis
 
 from bot.config import settings
+
+
+logger = logging.getLogger("venzap.bot.redis")
 
 
 _STATE_TTL_SECONDS = 86400
@@ -48,12 +52,24 @@ class _RedisProxy:
             return self._backend
 
         redis_url = settings.redis_url
+        if not redis_url:
+            logger.warning("Redis URL missing; using in-memory store")
+            self._backend = self._memory_backend
+            return self._memory_backend
+
+        if "://" not in redis_url:
+            redis_url = f"redis://{redis_url}"
         if redis_url.startswith("https://"):
             redis_url = "rediss://" + redis_url[len("https://"):]
         elif redis_url.startswith("http://"):
             redis_url = "redis://" + redis_url[len("http://"):]
 
-        client = redis.from_url(redis_url, decode_responses=True)
+        try:
+            client = redis.from_url(redis_url, decode_responses=True)
+        except Exception:
+            logger.exception("Invalid Redis URL; using in-memory store")
+            self._backend = self._memory_backend
+            return self._memory_backend
         try:
             hostname = client.connection_pool.connection_kwargs.get("host")
             if hostname:
